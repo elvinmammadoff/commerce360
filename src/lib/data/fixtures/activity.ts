@@ -1,0 +1,107 @@
+import type { ActivityEvent, NotificationItem } from "@/lib/types";
+
+export const activityEvents: ActivityEvent[] = [
+  {
+    id: "evt_012",
+    type: "generation_started",
+    message: "Aria Bouclé Armchair — Ivory started rendering (v1)",
+    actor: "Maya Lindqvist",
+    createdAt: "2026-07-04T11:32:00Z",
+    href: "/products/prd_aria",
+  },
+  {
+    id: "evt_011",
+    type: "download",
+    message: "Daniel Reyes downloaded the Solvei Upholstered Bed 4K package",
+    actor: "Daniel Reyes",
+    createdAt: "2026-07-03T16:20:00Z",
+    href: "/products/prd_solvei",
+  },
+  {
+    id: "evt_010",
+    type: "generation_failed",
+    message:
+      "Kestrel Task Chair — Graphite failed during normalization · credit refunded",
+    actor: "System",
+    createdAt: "2026-07-02T14:11:00Z",
+    href: "/products/prd_kestrel",
+  },
+  {
+    id: "evt_009",
+    type: "member_invited",
+    message: "Priya Sharma was invited to the workspace",
+    actor: "Maya Lindqvist",
+    createdAt: "2026-07-02T09:03:00Z",
+    href: "/settings",
+  },
+  {
+    id: "evt_008",
+    type: "generation_completed",
+    message: "Solvei Upholstered Bed — Dove Grey finished v2 render in 10m 55s",
+    actor: "System",
+    createdAt: "2026-07-01T16:16:00Z",
+    href: "/products/prd_solvei",
+  },
+  {
+    id: "evt_007",
+    type: "generation_completed",
+    message: "Vireo Lounge Chair — Oxblood Velvet finished v3 render in 11m 13s",
+    actor: "System",
+    createdAt: "2026-06-30T11:29:00Z",
+    href: "/products/prd_vireo",
+  },
+  {
+    id: "evt_006",
+    type: "api_key_created",
+    message: "Production API key created",
+    actor: "Daniel Reyes",
+    createdAt: "2026-06-29T17:40:00Z",
+    href: "/api",
+  },
+  {
+    id: "evt_005",
+    type: "plan_started",
+    message: "Growth plan activated · 80 credits added",
+    actor: "Maya Lindqvist",
+    createdAt: "2026-06-26T09:00:00Z",
+    href: "/billing",
+  },
+];
+
+export const notifications: NotificationItem[] = [
+  {
+    id: "ntf_04",
+    title: "Aria Bouclé Armchair is rendering",
+    body: "v1 render started — usually finishes in about 11 minutes.",
+    createdAt: "2026-07-04T11:32:00Z",
+    read: false,
+    tone: "info",
+    href: "/products/prd_aria",
+  },
+  {
+    id: "ntf_03",
+    title: "Solvei Upholstered Bed — Dove Grey is ready",
+    body: "v2 finished with the 4K upscale pass. Viewer, video, and frames are live.",
+    createdAt: "2026-07-01T16:16:00Z",
+    read: false,
+    tone: "success",
+    href: "/products/prd_solvei",
+  },
+  {
+    id: "ntf_02",
+    title: "Render failed — credit refunded",
+    body: "Kestrel Task Chair had multiple products in frame. Crop and retry.",
+    createdAt: "2026-07-02T14:11:00Z",
+    read: true,
+    tone: "warning",
+    href: "/products/prd_kestrel",
+  },
+  {
+    id: "ntf_01",
+    title: "New sign-in to your workspace",
+    body: "Daniel Reyes signed in from Safari on macOS · Amsterdam, NL.",
+    createdAt: "2026-06-29T14:20:00Z",
+    read: true,
+    tone: "info",
+  },
+];

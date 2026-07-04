@@ -1,0 +1,88 @@
+import Link from "next/link";
+
+import { Logo } from "@/components/shared/logo";
+
+const FOOTER_COLUMNS = [
+  {
+    label: "Product",
+    links: [
+      { label: "Features", href: "/#features" },
+      { label: "How it works", href: "/#how-it-works" },
+      { label: "Pricing", href: "/pricing" },
+      { label: "API", href: "/api" },
+    ],
+  },
+  {
+    label: "Customers",
+    links: [
+      { label: "Testimonials", href: "/#testimonials" },
+      { label: "Furniture brands", href: "/#features" },
+      { label: "Electronics", href: "/#features" },
+      { label: "Agencies", href: "/#features" },
+    ],
+  },
+  {
+    label: "Resources",
+    links: [
+      { label: "Documentation", href: "/api" },
+      { label: "FAQ", href: "/#faq" },
+      { label: "Support", href: "mailto:support@commerce360.ai" },
+      { label: "Sales", href: "mailto:sales@commerce360.ai" },
+    ],
+  },
+  {
+    label: "Company",
+    links: [
+      { label: "Sign in", href: "/login" },
+      { label: "Privacy", href: "/#" },
+      { label: "Terms", href: "/#" },
+      { label: "DPA", href: "/#" },
+    ],
+  },
+];
+
+export function MarketingFooter() {
+  return (
+    <footer className="border-t border-border bg-[#070707]">
+      <div className="container-page py-14">
+        <div className="grid gap-10 lg:grid-cols-6">
+          <div className="space-y-4 lg:col-span-2">
+            <Logo />
+            <p className="max-w-xs text-sm text-muted-foreground">
+              Generate premium product visuals from a single photo — 360°
+              viewers, orbit videos, and marketplace-ready image sets.
+            </p>
+            <p className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="relative flex size-2">
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-60" />
+                <span className="relative inline-flex size-2 rounded-full bg-success" />
+              </span>
+              All systems operational
+            </p>
+          </div>
+          {FOOTER_COLUMNS.map((column) => (
+            <nav key={column.label} aria-label={column.label}>
+              <p className="text-sm font-medium text-foreground">{column.label}</p>
+              <ul className="mt-4 space-y-2.5">
+                {column.links.map((link) => (
+                  <li key={`${column.label}-${link.label}`}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
+        </div>
+        <div className="mt-12 flex flex-col justify-between gap-3 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row">
+          <p>© 2026 Commerce360 AI, Inc. All rights reserved.</p>
+          <p>Built for teams that ship catalogs, not photoshoots.</p>
+        </div>
+      </div>
+    </footer>
+  );
+}
