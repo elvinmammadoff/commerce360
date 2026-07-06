@@ -22,13 +22,15 @@ function StatCard({
   suffix?: string;
 }) {
   return (
-    <Card className="transition-all duration-250 hover:border-border hover:shadow-[0_0_24px_-12px_rgba(91,140,255,0.35)]">
+    <Card className="hover:ring-foreground/20 hover:elevate-md">
       <CardContent className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">{label}</p>
-          <Icon className="size-4 text-muted-foreground/70" aria-hidden="true" />
+          <span className="flex size-7 items-center justify-center rounded-lg bg-muted/60 ring-1 ring-inset ring-border/60">
+            <Icon className="size-3.5 text-muted-foreground" aria-hidden="true" />
+          </span>
         </div>
-        <p className="text-2xl font-semibold tracking-tight text-foreground">
+        <p className="text-2xl font-semibold tracking-tight text-foreground tabular-nums">
           {typeof value === "number" ? <AnimatedNumber value={value} /> : value}
           {suffix && (
             <span className="text-base font-normal text-muted-foreground">

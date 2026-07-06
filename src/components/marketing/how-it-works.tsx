@@ -1,7 +1,13 @@
-import { Check, ImageUp, Rocket, Workflow } from "lucide-react";
+"use client";
 
-import { Reveal } from "@/components/marketing/reveal";
+import { Check, ImageUp, Rocket, Workflow } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
+
+import { SectionHeader } from "@/components/marketing/section-header";
 import { PIPELINE_STAGES } from "@/lib/pipeline";
+import { cn } from "@/lib/utils";
+
+const EASE = [0.16, 1, 0.3, 1] as const;
 
 const STEPS = [
   {
@@ -28,56 +34,97 @@ const STEPS = [
 ];
 
 export function HowItWorks() {
-  return (
-    <section id="how-it-works" className="scroll-mt-24 py-24">
-      <div className="container-page">
-        <Reveal className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-medium text-brand">How it works</p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-            From flat photo to full product experience
-          </h2>
-          <p className="mt-4 text-muted-foreground">
-            The same pipeline studios charge thousands to replicate — running
-            as a managed service.
-          </p>
-        </Reveal>
+  const reduceMotion = useReducedMotion();
 
-        <div className="mt-14 grid gap-4 lg:grid-cols-3">
-          {STEPS.map((step, i) => (
-            <Reveal key={step.step} delay={i * 0.08}>
-              <div className="group h-full rounded-2xl border border-border bg-card p-6 transition-all duration-250 hover:border-brand/30 hover:shadow-[0_0_32px_-16px_rgba(91,140,255,0.4)]">
-                <div className="flex items-center justify-between">
-                  <div className="flex size-10 items-center justify-center rounded-xl border border-border bg-background transition-colors duration-250 group-hover:border-brand/40">
-                    <step.icon className="size-4.5 text-brand" aria-hidden="true" />
+  return (
+    <section id="how-it-works" className="scroll-mt-24 py-24 sm:py-28">
+      <div className="container-page">
+        <SectionHeader
+          eyebrow="How it works"
+          title="From flat photo to full product experience"
+          description="The same pipeline studios charge thousands to replicate — running as a managed service."
+        />
+
+        <div className="relative mt-16">
+          {/* Connective rail behind the steps (desktop) */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 top-5 hidden h-px lg:block"
+            style={{
+              background:
+                "linear-gradient(to right, transparent, color-mix(in oklch, var(--border), transparent 20%) 12%, color-mix(in oklch, var(--border), transparent 20%) 88%, transparent)",
+            }}
+          />
+
+          <ol className="grid gap-10 lg:grid-cols-3 lg:gap-8">
+            {STEPS.map((step, i) => (
+              <motion.li
+                key={step.step}
+                {...(reduceMotion
+                  ? {}
+                  : {
+                      initial: { opacity: 0, y: 18 },
+                      whileInView: { opacity: 1, y: 0 },
+                      viewport: { once: true, margin: "-60px" },
+                      transition: { duration: 0.5, delay: i * 0.1, ease: EASE },
+                    })}
+                className="relative flex flex-col"
+              >
+                {/* Node marker on the rail */}
+                <div className="flex items-center gap-4">
+                  <div className="relative flex size-10 shrink-0 items-center justify-center rounded-xl bg-card ring-1 ring-border">
+                    <div className="absolute inset-0 rounded-xl bg-brand/[0.07]" />
+                    <step.icon className="relative size-4.5 text-brand" aria-hidden="true" />
                   </div>
-                  <span className="font-mono text-sm text-muted-foreground/50">
-                    {step.step}
+                  <span className="font-mono text-xs tracking-widest text-muted-foreground/60 tabular-nums">
+                    STEP {step.step}
                   </span>
                 </div>
-                <h3 className="mt-5 text-lg font-medium">{step.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+
+                <h3 className="mt-6 text-lg font-medium tracking-tight">
+                  {step.title}
+                </h3>
+                <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
                   {step.description}
                 </p>
 
                 {step.step === "02" && (
-                  <ul className="mt-4 space-y-1.5 border-t border-border pt-4">
-                    {PIPELINE_STAGES.slice(1).map((stage) => (
-                      <li
+                  <ul className="mt-5 space-y-2 rounded-xl bg-card/60 p-4 ring-1 ring-border">
+                    {PIPELINE_STAGES.slice(1).map((stage, si) => (
+                      <motion.li
                         key={stage.id}
-                        className="flex items-center gap-2 text-xs text-muted-foreground"
+                        {...(reduceMotion
+                          ? {}
+                          : {
+                              initial: { opacity: 0, x: -6 },
+                              whileInView: { opacity: 1, x: 0 },
+                              viewport: { once: true },
+                              transition: {
+                                duration: 0.35,
+                                delay: 0.3 + si * 0.06,
+                                ease: EASE,
+                              },
+                            })}
+                        className="flex items-center gap-2.5 text-xs text-muted-foreground"
                       >
-                        <Check className="size-3 text-success" aria-hidden="true" />
+                        <span className="flex size-4 items-center justify-center rounded-full bg-success/12">
+                          <Check className="size-2.5 text-success" aria-hidden="true" />
+                        </span>
                         {stage.label}
-                        <span className="ml-auto font-mono text-[10px] text-muted-foreground/50">
+                        <span
+                          className={cn(
+                            "ml-auto font-mono text-[10px] text-muted-foreground/50",
+                          )}
+                        >
                           {stage.engine}
                         </span>
-                      </li>
+                      </motion.li>
                     ))}
                   </ul>
                 )}
-              </div>
-            </Reveal>
-          ))}
+              </motion.li>
+            ))}
+          </ol>
         </div>
       </div>
     </section>

@@ -25,7 +25,7 @@ export function FinalCta() {
             </svg>
 
             <div className="relative">
-              <h2 className="mx-auto max-w-2xl text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+              <h2 className="text-display-sm mx-auto max-w-2xl text-balance">
                 Your whole catalog, in every angle — by Friday
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-muted-foreground">

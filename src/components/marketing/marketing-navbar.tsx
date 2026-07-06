@@ -30,21 +30,26 @@ export function MarketingNavbar() {
   return (
     <header
       className={cn(
-        "fixed inset-x-0 top-0 z-50 transition-all duration-300",
+        "fixed inset-x-0 top-0 z-50 transition-all duration-300 ease-out-quart",
         scrolled
-          ? "border-b border-border bg-background/80 backdrop-blur-md"
+          ? "border-b border-border bg-background/70 shadow-[inset_0_-1px_0_0_color-mix(in_oklch,white_5%,transparent)] backdrop-blur-xl"
           : "border-b border-transparent bg-transparent",
       )}
     >
-      <div className="container-page flex h-16 items-center justify-between">
+      <div
+        className={cn(
+          "container-page flex items-center justify-between transition-all duration-300 ease-out-quart",
+          scrolled ? "h-14" : "h-16",
+        )}
+      >
         <Logo />
 
-        <nav aria-label="Marketing" className="hidden items-center gap-1 md:flex">
+        <nav aria-label="Marketing" className="hidden items-center gap-0.5 md:flex">
           {MARKETING_NAV.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground"
+              className="rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors duration-200 outline-none hover:bg-muted/60 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
             >
               {item.label}
             </Link>
@@ -85,7 +90,7 @@ export function MarketingNavbar() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="rounded-lg px-3 py-2.5 text-sm text-foreground transition-colors hover:bg-accent"
+                  className="rounded-lg px-3 py-2.5 text-sm text-foreground transition-colors outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/50"
                 >
                   {item.label}
                 </Link>

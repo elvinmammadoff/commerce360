@@ -31,6 +31,12 @@ export function Hero() {
 
   return (
     <section className="relative overflow-hidden pt-32 pb-20 sm:pt-40">
+      {/* Faint engineering grid — masked to a soft vignette so it reads as
+          texture, never pattern. */}
+      <div
+        aria-hidden="true"
+        className="bg-grid pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(680px_420px_at_50%_0%,black,transparent)]"
+      />
       {/* Quiet brand glow behind the headline */}
       <div
         aria-hidden="true"
@@ -51,9 +57,9 @@ export function Hero() {
 
           <motion.h1
             {...enter(0.08)}
-            className="mt-6 text-4xl font-semibold tracking-tight text-balance sm:text-6xl"
+            className="text-display mt-6 text-balance"
           >
-            One product photo.
+            <span className="text-muted-foreground">One product photo.</span>
             <br />
             Every visual you need to sell.
           </motion.h1>
@@ -104,10 +110,10 @@ export function Hero() {
         >
           <div className="rounded-3xl border border-border bg-card/60 p-2 shadow-[0_24px_80px_-32px_rgba(91,140,255,0.25)] backdrop-blur-sm">
             <TurntableViewer
-              src="/demo/chair.mp4"
+              src="/demo/bed.mp4"
               autoRotate
               compact
-              productName="Vireo Lounge Chair"
+              productName="Luno Platform Bed"
               className="aspect-[16/10] w-full rounded-2xl"
             />
           </div>
@@ -116,14 +122,14 @@ export function Hero() {
           </p>
         </motion.div>
 
-        <dl className="mx-auto mt-14 grid max-w-3xl grid-cols-1 gap-6 sm:grid-cols-3">
+        <dl className="mx-auto mt-16 grid max-w-3xl grid-cols-1 gap-px overflow-hidden rounded-2xl bg-border/60 ring-1 ring-border sm:grid-cols-3">
           {STATS.map((stat, i) => (
             <motion.div
               key={stat.label}
               {...enter(0.4 + i * 0.06)}
-              className="text-center"
+              className="bg-background px-6 py-6 text-center"
             >
-              <dd className="text-3xl font-semibold tracking-tight text-foreground">
+              <dd className="text-3xl font-semibold tracking-tight text-foreground tabular-nums">
                 <AnimatedNumber value={stat.value} />
                 {stat.suffix}
               </dd>

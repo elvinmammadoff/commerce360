@@ -68,7 +68,7 @@ export function MarketingFooter() {
                   <li key={`${column.label}-${link.label}`}>
                     <Link
                       href={link.href}
-                      className="text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground"
+                      className="-mx-1 rounded px-1 py-0.5 text-sm text-muted-foreground transition-colors duration-150 outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
                     >
                       {link.label}
                     </Link>

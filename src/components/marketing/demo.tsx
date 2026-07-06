@@ -1,13 +1,23 @@
 "use client";
 
 import * as React from "react";
-import { ArrowRight, ImageIcon } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, ImageIcon } from "lucide-react";
 
 import { Reveal } from "@/components/marketing/reveal";
+import { SectionHeader } from "@/components/marketing/section-header";
 import { TurntableViewer } from "@/components/app/viewer/turntable-viewer";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { CapturedFrame } from "@/lib/media/video-frames";
 import { getVideoPoster } from "@/lib/media/video-frames";
 
 const DEMO_VIDEO = "/demo/bed.mp4";
@@ -48,53 +58,141 @@ function SourcePhoto() {
   );
 }
 
+const FRAME_COUNT = 72;
+
 function FramesStrip() {
-  const [frames, setFrames] = React.useState<string[]>([]);
+  const [frames, setFrames] = React.useState<CapturedFrame[]>([]);
+  const [selected, setSelected] = React.useState<CapturedFrame | null>(null);
 
   React.useEffect(() => {
-    // Local import avoids pulling capture code until the tab is opened.
     let cancel = () => {};
     void import("@/lib/media/video-frames").then(({ captureFrames }) => {
-      cancel = captureFrames(DEMO_VIDEO, 12, 240, (frame) =>
-        setFrames((prev) => [...prev, frame.url]),
+      cancel = captureFrames(DEMO_VIDEO, FRAME_COUNT, 240, (frame) =>
+        setFrames((prev) => [...prev, frame]),
       );
     });
     return () => cancel();
   }, []);
 
+  const goTo = React.useCallback(
+    (offset: number) => {
+      if (!selected) return;
+      const next = (selected.index + offset + FRAME_COUNT) % FRAME_COUNT;
+      const frame = frames[next];
+      if (frame) setSelected(frame);
+    },
+    [selected, frames],
+  );
+
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!selected) return;
+      if (e.key === "ArrowRight") goTo(1);
+      if (e.key === "ArrowLeft") goTo(-1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selected, goTo]);
+
   return (
-    <div className="grid aspect-[16/10] w-full grid-cols-4 content-center gap-2 overflow-hidden rounded-2xl border border-border bg-[#0d0d0d] p-4">
-      {Array.from({ length: 12 }).map((_, i) =>
-        frames[i] ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            key={i}
-            src={frames[i]}
-            alt=""
-            className="aspect-square w-full rounded-md border border-border object-cover"
-          />
-        ) : (
-          <Skeleton key={i} className="aspect-square w-full rounded-md" />
-        ),
-      )}
-    </div>
+    <>
+      <div className="overflow-y-auto rounded-2xl border border-border bg-[#0d0d0d] p-3" style={{ maxHeight: 480 }}>
+        <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8">
+          {Array.from({ length: FRAME_COUNT }).map((_, i) => {
+            const frame = frames[i];
+            return frame ? (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setSelected(frame)}
+                className="group relative block overflow-hidden rounded-md border border-white/10 outline-none transition-all hover:border-white/40 focus-visible:ring-2 focus-visible:ring-white/50"
+                aria-label={`Frame ${i + 1}, ${frame.angle}°`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={frame.url}
+                  alt=""
+                  draggable={false}
+                  className="aspect-square w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                />
+                <span className="absolute right-0.5 bottom-0.5 rounded bg-black/70 px-1 font-mono text-[8px] text-white/70 tabular-nums">
+                  {frame.angle}°
+                </span>
+              </button>
+            ) : (
+              <Skeleton
+                key={i}
+                className="aspect-square w-full rounded-md opacity-20"
+              />
+            );
+          })}
+        </div>
+        <p className="mt-2 text-center font-mono text-[10px] text-white/30 tabular-nums">
+          {frames.length}/{FRAME_COUNT} loaded
+        </p>
+      </div>
+
+      <Dialog
+        open={selected !== null}
+        onOpenChange={(open) => !open && setSelected(null)}
+      >
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>
+              Frame {(selected?.index ?? 0) + 1} of {FRAME_COUNT}
+            </DialogTitle>
+            <DialogDescription>
+              Solvei Upholstered Bed · {selected?.angle}° · use ← → to
+              navigate
+            </DialogDescription>
+          </DialogHeader>
+          {selected && (
+            <div className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={selected.url}
+                alt={`Solvei Upholstered Bed at ${selected.angle} degrees`}
+                className="w-full rounded-lg border border-border"
+              />
+              <div className="absolute inset-y-0 left-0 flex items-center pl-2">
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="size-8 rounded-full bg-background/80 backdrop-blur-sm"
+                  onClick={() => goTo(-1)}
+                  aria-label="Previous frame"
+                >
+                  <ChevronLeft className="size-4" />
+                </Button>
+              </div>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="size-8 rounded-full bg-background/80 backdrop-blur-sm"
+                  onClick={() => goTo(1)}
+                  aria-label="Next frame"
+                >
+                  <ChevronRight className="size-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
 export function Demo() {
   return (
-    <section id="demo" className="scroll-mt-24 py-24">
+    <section id="demo" className="scroll-mt-24 py-24 sm:py-28">
       <div className="container-page">
-        <Reveal className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-medium text-brand">Live demo</p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-            One photo in. This comes out.
-          </h2>
-          <p className="mt-4 text-muted-foreground">
-            An upholstered bed from a Fernhaven Home catalog shot — rendered in
-            10 minutes 55 seconds. Everything below is interactive.
-          </p>
-        </Reveal>
+        <SectionHeader
+          eyebrow="Live demo"
+          title="One photo in. This comes out."
+          description="An upholstered bed from a Fernhaven Home catalog shot — rendered in 10 minutes 55 seconds. Everything below is interactive."
+        />
 
         <div className="mt-14 grid items-center gap-8 lg:grid-cols-[minmax(0,2fr)_auto_minmax(0,3fr)]">
           <Reveal>
@@ -117,7 +215,7 @@ export function Demo() {
           </Reveal>
 
           <Reveal delay={0.16}>
-            <Tabs defaultValue="viewer">
+            <Tabs defaultValue="video">
               <div className="flex items-center justify-between gap-3">
                 <TabsList>
                   <TabsTrigger value="viewer">360° viewer</TabsTrigger>

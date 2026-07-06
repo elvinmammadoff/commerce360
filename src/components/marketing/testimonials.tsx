@@ -1,43 +1,97 @@
-import { Reveal } from "@/components/marketing/reveal";
+"use client";
+
+import { motion, useReducedMotion } from "motion/react";
+
+import { SectionHeader } from "@/components/marketing/section-header";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 import type { Testimonial } from "@/lib/types";
 
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+function Quote({
+  testimonial,
+  featured = false,
+  index,
+}: {
+  testimonial: Testimonial;
+  featured?: boolean;
+  index: number;
+}) {
+  const reduceMotion = useReducedMotion();
+  return (
+    <motion.figure
+      {...(reduceMotion
+        ? {}
+        : {
+            initial: { opacity: 0, y: 16 },
+            whileInView: { opacity: 1, y: 0 },
+            viewport: { once: true, margin: "-60px" },
+            transition: { duration: 0.5, delay: index * 0.06, ease: EASE },
+          })}
+      className={cn(
+        "group relative flex h-full flex-col justify-between gap-6 overflow-hidden rounded-2xl bg-card p-6 ring-1 ring-foreground/10",
+        "shadow-[inset_0_1px_0_0_color-mix(in_oklch,white_4%,transparent)] transition-[box-shadow,--tw-ring-color] duration-300 hover:ring-brand/25 hover:elevate-md",
+        featured && "sm:col-span-2 sm:p-8",
+      )}
+    >
+      {/* Oversized quotation glyph — quiet, sits behind the copy */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-4 right-4 select-none font-serif text-[7rem] leading-none text-foreground/[0.04]"
+      >
+        &rdquo;
+      </span>
+      <blockquote
+        className={cn(
+          "relative leading-relaxed text-foreground/90",
+          featured ? "text-lg sm:text-xl" : "text-[15px]",
+        )}
+      >
+        {testimonial.quote}
+      </blockquote>
+      <figcaption className="relative flex items-center gap-3">
+        <Avatar className="size-9">
+          <AvatarFallback className="bg-secondary text-xs font-medium">
+            {testimonial.initials}
+          </AvatarFallback>
+        </Avatar>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium">{testimonial.name}</p>
+          <p className="truncate text-xs text-muted-foreground">
+            {testimonial.title}, {testimonial.company}
+          </p>
+        </div>
+      </figcaption>
+    </motion.figure>
+  );
+}
+
 export function Testimonials({ items }: { items: Testimonial[] }) {
+  // Featured lead quote + a clean two-row tile (uses up to five voices so the
+  // grid always resolves to full rows — no orphaned cell).
+  const shown = items.slice(0, 5);
+
   return (
     <section
       id="testimonials"
-      className="scroll-mt-24 border-t border-border bg-[#070707] py-24"
+      className="scroll-mt-24 border-t border-border bg-[#070707] py-24 sm:py-28"
     >
       <div className="container-page">
-        <Reveal className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-medium text-brand">Customers</p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-            Teams that stopped booking studios
-          </h2>
-        </Reveal>
+        <SectionHeader
+          eyebrow="Customers"
+          title="Teams that stopped booking studios"
+          description="Furniture, electronics, and home brands shipping product pages faster — with fewer returns."
+        />
 
-        <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((testimonial, i) => (
-            <Reveal key={testimonial.name} delay={(i % 3) * 0.08}>
-              <figure className="flex h-full flex-col justify-between gap-6 rounded-2xl border border-border bg-card p-6 transition-all duration-250 hover:border-brand/25">
-                <blockquote className="text-[15px] leading-relaxed text-foreground/90">
-                  “{testimonial.quote}”
-                </blockquote>
-                <figcaption className="flex items-center gap-3">
-                  <Avatar className="size-9">
-                    <AvatarFallback className="bg-secondary text-xs font-medium">
-                      {testimonial.initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-sm font-medium">{testimonial.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {testimonial.title}, {testimonial.company}
-                    </p>
-                  </div>
-                </figcaption>
-              </figure>
-            </Reveal>
+        <div className="mt-14 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {shown.map((testimonial, i) => (
+            <Quote
+              key={testimonial.name}
+              testimonial={testimonial}
+              featured={i === 0}
+              index={i}
+            />
           ))}
         </div>
       </div>
