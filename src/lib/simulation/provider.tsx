@@ -7,7 +7,7 @@ import { DEMO_ORBITS } from "@/lib/demo-assets";
 import { deriveJobState, fakeRenderSeconds } from "@/lib/simulation/engine";
 import type { GenerationJob, Product, ProductCategory } from "@/lib/types";
 
-const STORAGE_KEY = "c360.simulation.v1";
+const STORAGE_KEY = "c360.simulation.v2";
 const TICK_MS = 250;
 
 export interface StartGenerationInput {
@@ -22,7 +22,10 @@ export interface StartGenerationInput {
 interface StoredState {
   products: Product[];
   jobs: GenerationJob[];
-  creditsSpent: number;
+  /** Credits consumed by renders started in this demo session. */
+  creditsUsed: number;
+  /** Credits added by purchases made in this demo session. */
+  creditsPurchased: number;
   /** Deterministic per-product demo asset assignment. */
   assetIndexByProduct: Record<string, number>;
 }
@@ -31,7 +34,10 @@ interface SimulationContextValue {
   /** Simulated products/jobs with live-derived stage & progress. */
   products: Product[];
   jobs: GenerationJob[];
-  creditsSpent: number;
+  /** Credits consumed by renders started in this demo session. */
+  creditsUsed: number;
+  /** Credits added by purchases made in this demo session. */
+  creditsPurchased: number;
   creditsBalance: number;
   startGeneration: (input: StartGenerationInput) => string;
   purchaseCredits: (credits: number) => void;
@@ -42,7 +48,8 @@ const SimulationContext = React.createContext<SimulationContextValue | null>(nul
 const EMPTY_STATE: StoredState = {
   products: [],
   jobs: [],
-  creditsSpent: 0,
+  creditsUsed: 0,
+  creditsPurchased: 0,
   assetIndexByProduct: {},
 };
 
@@ -54,7 +61,8 @@ function loadStored(): StoredState {
     return {
       products: parsed.products ?? [],
       jobs: parsed.jobs ?? [],
-      creditsSpent: parsed.creditsSpent ?? 0,
+      creditsUsed: parsed.creditsUsed ?? 0,
+      creditsPurchased: parsed.creditsPurchased ?? 0,
       assetIndexByProduct: parsed.assetIndexByProduct ?? {},
     };
   } catch {
@@ -190,9 +198,10 @@ export function SimulationProvider({
 
       setStored((prev) => {
         const next: StoredState = {
+          ...prev,
           products: [product, ...prev.products],
           jobs: [job, ...prev.jobs],
-          creditsSpent: prev.creditsSpent + 1,
+          creditsUsed: prev.creditsUsed + 1,
           assetIndexByProduct: {
             ...prev.assetIndexByProduct,
             // Match the demo asset to the product type so the finished
@@ -211,10 +220,10 @@ export function SimulationProvider({
 
   const purchaseCredits = React.useCallback((credits: number) => {
     setStored((prev) => {
-      // Purchases lower net spend, which raises the derived balance.
+      // Purchases add credits to the wallet, raising the derived balance.
       const next: StoredState = {
         ...prev,
-        creditsSpent: prev.creditsSpent - credits,
+        creditsPurchased: prev.creditsPurchased + credits,
       };
       persist(next);
       return next;
@@ -236,8 +245,12 @@ export function SimulationProvider({
     return {
       products: stored.products,
       jobs,
-      creditsSpent: stored.creditsSpent,
-      creditsBalance: Math.max(0, initialCredits - stored.creditsSpent),
+      creditsUsed: stored.creditsUsed,
+      creditsPurchased: stored.creditsPurchased,
+      creditsBalance: Math.max(
+        0,
+        initialCredits + stored.creditsPurchased - stored.creditsUsed,
+      ),
       startGeneration,
       purchaseCredits,
     };

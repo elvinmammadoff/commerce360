@@ -40,8 +40,8 @@ import type {
 } from "@/lib/types";
 
 const revenueConfig = {
-  mrr: {
-    label: "MRR",
+  revenue: {
+    label: "Revenue",
     color: "var(--chart-1)",
   },
 } satisfies ChartConfig;
@@ -121,16 +121,16 @@ export function AdminView({
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
-          label="MRR"
+          label="Revenue (30d)"
           value={
             <AnimatedNumber
-              value={stats.mrr}
+              value={stats.revenue}
               format={(v) => formatCurrency(v)}
             />
           }
           hint={
             <span className="text-success">
-              ↑ {stats.mrrGrowthPct}% month over month
+              ↑ {stats.revenueGrowthPct}% month over month
             </span>
           }
           icon={DollarSign}
@@ -163,7 +163,7 @@ export function AdminView({
         <Card className="xl:col-span-3">
           <CardHeader>
             <CardTitle>Revenue</CardTitle>
-            <CardDescription>MRR by month, 2026</CardDescription>
+            <CardDescription>Credit sales by month, 2026</CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={revenueConfig} className="h-64 w-full">
@@ -195,8 +195,8 @@ export function AdminView({
                   }
                 />
                 <Bar
-                  dataKey="mrr"
-                  fill="var(--color-mrr)"
+                  dataKey="revenue"
+                  fill="var(--color-revenue)"
                   radius={[6, 6, 0, 0]}
                   maxBarSize={44}
                 />
@@ -264,7 +264,7 @@ export function AdminView({
                   <TableHead className="hidden text-right lg:table-cell">
                     Credits used
                   </TableHead>
-                  <TableHead className="text-right">MRR</TableHead>
+                  <TableHead className="text-right">Revenue</TableHead>
                   <TableHead className="hidden text-right sm:table-cell">
                     Status
                   </TableHead>
@@ -305,7 +305,7 @@ export function AdminView({
                       {formatNumber(ws.creditsUsed)}
                     </TableCell>
                     <TableCell className="text-right font-mono text-sm tabular-nums">
-                      {ws.mrr > 0 ? formatCurrency(ws.mrr) : "—"}
+                      {ws.revenue > 0 ? formatCurrency(ws.revenue) : "—"}
                     </TableCell>
                     <TableCell className="hidden text-right sm:table-cell">
                       <Badge

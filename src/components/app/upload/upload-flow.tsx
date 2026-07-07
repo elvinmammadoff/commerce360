@@ -480,7 +480,7 @@ export function UploadFlow({ prefill }: { prefill?: Product }) {
               <p className="text-center text-xs text-destructive">
                 You&apos;re out of credits —{" "}
                 <Link href="/credits" className="underline underline-offset-2">
-                  top up
+                  buy more
                 </Link>{" "}
                 to keep rendering.
               </p>

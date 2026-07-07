@@ -60,11 +60,11 @@ export const activityEvents: ActivityEvent[] = [
   },
   {
     id: "evt_005",
-    type: "plan_started",
-    message: "Growth plan activated · 80 credits added",
+    type: "credits_added",
+    message: "1 free credit added on signup",
     actor: "Maya Lindqvist",
     createdAt: "2026-06-26T09:00:00Z",
-    href: "/billing",
+    href: "/credits",
   },
 ];
 

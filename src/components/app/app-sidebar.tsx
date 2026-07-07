@@ -59,11 +59,13 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 export function SidebarCredits({ workspace }: { workspace: Workspace }) {
-  const { creditsBalance } = useSimulation();
-  const pct = Math.min(
-    100,
-    Math.round((creditsBalance / workspace.creditsPerMonth) * 100),
-  );
+  const { creditsBalance, creditsPurchased } = useSimulation();
+  // Wallet fill: how much of the lifetime purchased credits remain.
+  const totalPurchased = workspace.totalPurchased + creditsPurchased;
+  const pct =
+    totalPurchased > 0
+      ? Math.min(100, Math.round((creditsBalance / totalPurchased) * 100))
+      : 0;
 
   return (
     <div className="mx-3 mb-3 rounded-xl border border-sidebar-border bg-sidebar-accent/50 p-3">
@@ -71,16 +73,13 @@ export function SidebarCredits({ workspace }: { workspace: Workspace }) {
         <p className="text-xs text-muted-foreground">Credits</p>
         <p className="text-sm font-semibold tabular-nums text-foreground">
           {creditsBalance}
-          <span className="font-normal text-muted-foreground">
-            {" "}
-            / {workspace.creditsPerMonth}
-          </span>
+          <span className="font-normal text-muted-foreground"> left</span>
         </p>
       </div>
       <Progress
         value={pct}
         className="mt-2 h-1"
-        aria-label={`${creditsBalance} of ${workspace.creditsPerMonth} credits remaining`}
+        aria-label={`${creditsBalance} credits remaining`}
       />
       <Button
         asChild
@@ -88,7 +87,7 @@ export function SidebarCredits({ workspace }: { workspace: Workspace }) {
         size="sm"
         className="mt-3 w-full"
       >
-        <Link href="/credits">Top up</Link>
+        <Link href="/credits">Buy credits</Link>
       </Button>
     </div>
   );

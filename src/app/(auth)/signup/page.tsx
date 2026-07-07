@@ -1,16 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 
 import { LoginForm } from "@/components/marketing/login-form";
 import { Logo } from "@/components/shared/logo";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export const metadata: Metadata = {
-  title: "Sign in",
+  title: "Create your account",
 };
 
-export default function LoginPage() {
+const FREE_CREDIT_INCLUDES = [
+  "1 complete pipeline render",
+  "4K video",
+  "72 frames",
+  "Public share page",
+];
+
+export default function SignupPage() {
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col p-6 sm:p-10">
@@ -25,17 +31,42 @@ export default function LoginPage() {
         </div>
 
         <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-12">
-          <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Create your account
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Continue creating stunning 360° product experiences.
+            Get 1 free credit instantly.
+            <br />
+            No credit card required.
           </p>
           <div className="mt-8">
-            <LoginForm />
+            <LoginForm mode="signup" />
+          </div>
+
+          <div className="mt-8 rounded-xl border border-border bg-card/50 p-4">
+            <p className="text-xs font-medium text-foreground">
+              Your free credit includes:
+            </p>
+            <ul className="mt-3 space-y-2">
+              {FREE_CREDIT_INCLUDES.map((item) => (
+                <li
+                  key={item}
+                  className="flex items-center gap-2 text-xs text-muted-foreground"
+                >
+                  <Check
+                    className="size-3.5 shrink-0 text-brand"
+                    strokeWidth={3}
+                    aria-hidden="true"
+                  />
+                  {item}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
         <p className="text-xs text-muted-foreground">
-          By signing in you agree to our Terms and Privacy Policy.
+          By creating an account you agree to our Terms and Privacy Policy.
         </p>
       </div>
 
@@ -56,21 +87,11 @@ export default function LoginPage() {
 
         <figure className="relative flex h-full flex-col justify-end p-12">
           <blockquote className="max-w-md text-xl leading-relaxed font-medium text-balance text-foreground/90">
-            “We shot our entire spring collection without booking a camera. 214
-            SKUs went live with 360° viewers in under two weeks.”
+            “From a single photo to PDP-ready assets in eleven minutes. Buy one
+            credit, render one product — no subscription, ever.”
           </blockquote>
-          <figcaption className="mt-6 flex items-center gap-3">
-            <Avatar className="size-10">
-              <AvatarFallback className="bg-secondary text-sm font-medium">
-                LV
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-sm font-medium">Linnea Voss</p>
-              <p className="text-xs text-muted-foreground">
-                E-commerce Director, Møbelhuset Nord
-              </p>
-            </div>
+          <figcaption className="mt-6 text-sm text-muted-foreground">
+            One credit = one complete pipeline render.
           </figcaption>
         </figure>
       </div>

@@ -12,25 +12,20 @@ import { Spotlight } from "@/components/marketing/spotlight";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { Plan } from "@/lib/types";
+import type { CreditPlan } from "@/lib/types";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 export function PricingSection({
   plans,
-  heading = "Pricing that scales with your catalog",
+  heading = "Pay per product. Credits never expire.",
   id = "pricing",
 }: {
-  plans: Plan[];
+  plans: CreditPlan[];
   heading?: string;
   id?: string;
 }) {
-  const [yearly, setYearly] = React.useState(false);
   const reduceMotion = useReducedMotion();
-  // Two balanced tiers: Starter (neutral) + Growth (the highlighted "Pro" card).
-  const paid = plans.filter(
-    (plan) => plan.id === "starter" || plan.id === "growth",
-  );
 
   return (
     <section id={id} className="relative scroll-mt-24 py-24 sm:py-28">
@@ -39,64 +34,11 @@ export function PricingSection({
         <SectionHeader
           eyebrow="Pricing"
           title={heading}
-          description="One credit = one product rendered into every format. Credits roll over while you're subscribed."
+          description="One credit = one complete pipeline render (Flux 2 → Seedance → SeeDVR → 72 frames → 4K video → Share page). Buy only what you need."
         />
 
-        {/* Billing toggle — sliding gradient pill */}
-        <div className="mt-10 flex justify-center">
-          <div
-            className="relative inline-flex items-center gap-1 rounded-full border border-border/80 bg-card/70 p-1.5 backdrop-blur-md elevate-sm"
-            role="radiogroup"
-            aria-label="Billing period"
-          >
-            {(["Monthly", "Yearly"] as const).map((period) => {
-              const isYearly = period === "Yearly";
-              const active = yearly === isYearly;
-              return (
-                <button
-                  key={period}
-                  type="button"
-                  role="radio"
-                  aria-checked={active}
-                  onClick={() => setYearly(isYearly)}
-                  className={cn(
-                    "relative cursor-pointer rounded-full px-6 py-2 text-[0.9375rem] font-semibold tracking-tight outline-none transition-colors duration-200 focus-visible:ring-3 focus-visible:ring-ring/50",
-                    active
-                      ? "text-white"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {active && (
-                    <motion.span
-                      layoutId="billing-pill"
-                      className="absolute inset-0 -z-10 rounded-full bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] shadow-[0_6px_20px_-6px_rgba(124,92,246,0.7)]"
-                      transition={
-                        reduceMotion
-                          ? { duration: 0 }
-                          : { type: "spring", stiffness: 380, damping: 32 }
-                      }
-                    />
-                  )}
-                  {period}
-                  {isYearly && (
-                    <span
-                      className={cn(
-                        "ml-2 rounded-full px-1.5 py-0.5 text-xs font-semibold",
-                        active ? "bg-white/20 text-white" : "bg-success/12 text-success",
-                      )}
-                    >
-                      −17%
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="mx-auto mt-14 grid max-w-3xl items-stretch gap-6 sm:grid-cols-2">
-          {paid.map((plan, i) => {
-            const price = yearly ? plan.priceYearly : plan.priceMonthly;
+        <div className="mx-auto mt-14 grid max-w-6xl items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {plans.map((plan, i) => {
             const isPro = Boolean(plan.highlighted);
             return (
               <motion.div
@@ -114,7 +56,7 @@ export function PricingSection({
                       },
                     })}
                 className={cn(
-                  "group relative isolate flex h-full flex-col rounded-3xl p-7 transition-[box-shadow] duration-300 sm:p-8",
+                  "group relative isolate flex h-full flex-col rounded-3xl p-7 transition-[box-shadow] duration-300",
                   isPro
                     ? "bg-card elevate-lg"
                     : "bg-card/60 ring-1 ring-border elevate-sm hover:elevate-md",
@@ -123,7 +65,7 @@ export function PricingSection({
                 {/* Cursor-tracked brand light behind the content */}
                 <Spotlight className="group-hover:opacity-100" />
 
-                {/* Soft blue→violet outer glow — resting on Pro, on hover for Starter */}
+                {/* Soft blue→violet outer glow — resting on Pro, on hover for the rest */}
                 <span
                   aria-hidden="true"
                   className={cn(
@@ -134,7 +76,7 @@ export function PricingSection({
                   )}
                 />
 
-                {/* Gradient hairline border — always on for Pro, on hover for Starter */}
+                {/* Gradient hairline border — always on for Pro, on hover for the rest */}
                 <GradientBorder
                   className={cn(
                     "transition-opacity duration-500",
@@ -157,22 +99,22 @@ export function PricingSection({
 
                 <div className="relative">
                   <h3 className="text-lg font-semibold tracking-tight">{plan.name}</h3>
-                  <p className="mt-1.5 text-sm text-muted-foreground">{plan.tagline}</p>
+                  <p className="mt-1.5 text-sm text-muted-foreground">
+                    {plan.credits} {plan.credits === 1 ? "Credit" : "Credits"}
+                  </p>
                 </div>
 
                 <p className="relative mt-6 flex items-baseline gap-1.5">
                   <span className="text-5xl font-semibold tracking-tight tabular-nums">
-                    {formatCurrency(price ?? 0)}
+                    {formatCurrency(plan.price)}
                   </span>
-                  <span className="text-sm text-muted-foreground">
-                    /month{yearly && ", billed yearly"}
-                  </span>
+                  <span className="text-sm text-muted-foreground">One-time</span>
                 </p>
                 <p className="relative mt-2 text-sm text-muted-foreground">
                   <span className="font-medium text-foreground">
-                    {plan.creditsPerMonth} renders
+                    {formatCurrency(plan.perProduct)}
                   </span>{" "}
-                  per month · {plan.videoResolution} video
+                  per product
                 </p>
 
                 <Button
@@ -184,8 +126,8 @@ export function PricingSection({
                       "border-transparent bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] text-white shadow-[0_8px_28px_-8px_rgba(124,92,246,0.6)] hover:text-white hover:shadow-[0_10px_34px_-6px_rgba(124,92,246,0.85)]",
                   )}
                 >
-                  <Link href="/login">
-                    Start with {plan.name}
+                  <Link href="/signup">
+                    {plan.cta}
                     <ArrowRight aria-hidden="true" />
                   </Link>
                 </Button>
@@ -209,6 +151,20 @@ export function PricingSection({
               </motion.div>
             );
           })}
+        </div>
+
+        {/* One-time model reassurance — no subscription */}
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5 font-medium text-foreground">
+            <Check className="size-4 text-success" strokeWidth={3} aria-hidden="true" />
+            1 free credit on signup
+          </span>
+          <span aria-hidden="true" className="text-border">•</span>
+          <span>Credits never expire</span>
+          <span aria-hidden="true" className="text-border">•</span>
+          <span>No subscription</span>
+          <span aria-hidden="true" className="text-border">•</span>
+          <span>Secure Stripe checkout</span>
         </div>
       </div>
     </section>

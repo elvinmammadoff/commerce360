@@ -100,7 +100,7 @@ export function MarketingNavbar() {
             size="sm"
             className="border-transparent bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] text-white shadow-[0_6px_20px_-6px_rgba(124,92,246,0.65)] hover:text-white hover:shadow-[0_8px_26px_-6px_rgba(124,92,246,0.85)]"
           >
-            <Link href="/login">
+            <Link href="/signup">
               Start free <ArrowRight aria-hidden="true" />
             </Link>
           </Button>
@@ -145,7 +145,7 @@ export function MarketingNavbar() {
                 asChild
                 className="border-transparent bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] text-white hover:text-white"
               >
-                <Link href="/login" onClick={() => setOpen(false)}>
+                <Link href="/signup" onClick={() => setOpen(false)}>
                   Start free
                 </Link>
               </Button>

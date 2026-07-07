@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { BillingView } from "@/components/app/billing/billing-view";
 import { PageHeader } from "@/components/shared/page-header";
 import {
-  getInvoices,
+  getCreditPlans,
   getPaymentMethod,
-  getPlans,
+  getPurchases,
   getWorkspace,
 } from "@/lib/data";
 
@@ -14,10 +14,10 @@ export const metadata: Metadata = {
 };
 
 export default async function BillingPage() {
-  const [workspace, plans, invoices, paymentMethod] = await Promise.all([
+  const [workspace, plans, purchases, paymentMethod] = await Promise.all([
     getWorkspace(),
-    getPlans(),
-    getInvoices(),
+    getCreditPlans(),
+    getPurchases(),
     getPaymentMethod(),
   ]);
 
@@ -25,12 +25,12 @@ export default async function BillingPage() {
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
       <PageHeader
         title="Billing"
-        description="Plan, payment method, and invoices for the Fernhaven Home workspace."
+        description="Credit wallet, payment method, and purchase history for the Fernhaven Home workspace."
       />
       <BillingView
         workspace={workspace}
         plans={plans}
-        invoices={invoices}
+        purchases={purchases}
         paymentMethod={paymentMethod}
       />
     </div>

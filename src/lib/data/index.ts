@@ -14,15 +14,14 @@ import type {
   ApiEndpoint,
   ApiKey,
   CreditEntry,
-  CreditPack,
+  CreditPlan,
   CurrentUser,
   EngagementPoint,
   GenerationJob,
-  Invoice,
   NotificationItem,
   PaymentMethod,
-  Plan,
   Product,
+  Purchase,
   RevenuePoint,
   TeamMember,
   Testimonial,
@@ -33,7 +32,7 @@ import type {
 import { activityEvents, notifications } from "./fixtures/activity";
 import { adminJobs, adminStats, adminWorkspaces, engagementSeries, revenueSeries } from "./fixtures/analytics";
 import { apiCodeSamples, apiEndpoints, apiKeys } from "./fixtures/api";
-import { creditPacks, invoices, paymentMethod, plans } from "./fixtures/billing";
+import { creditPlans, paymentMethod, purchases } from "./fixtures/billing";
 import { creditLedger } from "./fixtures/credits";
 import { jobs } from "./fixtures/jobs";
 import { faqs, heroStats, testimonials, trustedByBrands } from "./fixtures/marketing";
@@ -78,16 +77,12 @@ export async function getCreditLedger(): Promise<CreditEntry[]> {
   return creditLedger;
 }
 
-export async function getPlans(): Promise<Plan[]> {
-  return plans;
+export async function getCreditPlans(): Promise<CreditPlan[]> {
+  return creditPlans;
 }
 
-export async function getCreditPacks(): Promise<CreditPack[]> {
-  return creditPacks;
-}
-
-export async function getInvoices(): Promise<Invoice[]> {
-  return invoices;
+export async function getPurchases(): Promise<Purchase[]> {
+  return purchases;
 }
 
 export async function getPaymentMethod(): Promise<PaymentMethod> {

@@ -6,7 +6,6 @@ import {
   Download,
   KeyRound,
   Play,
-  Rocket,
   UserPlus,
   type LucideIcon,
 } from "lucide-react";
@@ -29,7 +28,6 @@ const TYPE_META: Record<ActivityType, { icon: LucideIcon; color: string }> = {
   download: { icon: Download, color: "text-muted-foreground" },
   member_invited: { icon: UserPlus, color: "text-muted-foreground" },
   api_key_created: { icon: KeyRound, color: "text-muted-foreground" },
-  plan_started: { icon: Rocket, color: "text-brand" },
   credits_added: { icon: Coins, color: "text-success" },
 };
 

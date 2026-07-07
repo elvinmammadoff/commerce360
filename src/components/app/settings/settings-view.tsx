@@ -1,9 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { Mail, TriangleAlert, UserPlus } from "lucide-react";
+import Link from "next/link";
+import {
+  CreditCard,
+  Mail,
+  Receipt,
+  TriangleAlert,
+  UserPlus,
+} from "lucide-react";
 import { toast } from "sonner";
 
+import { BuyCreditsDialog } from "@/components/app/credits/buy-credits-dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,7 +62,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDate } from "@/lib/format";
-import type { CurrentUser, TeamMember, Workspace } from "@/lib/types";
+import type {
+  CreditPlan,
+  CurrentUser,
+  PaymentMethod,
+  TeamMember,
+  Workspace,
+} from "@/lib/types";
 
 function ProfileCard({ user }: { user: CurrentUser }) {
   const [name, setName] = React.useState(user.name);
@@ -120,7 +134,7 @@ function WorkspaceCard({ workspace }: { workspace: Workspace }) {
       <CardHeader>
         <CardTitle>Workspace</CardTitle>
         <CardDescription>
-          Shown on share pages and invoices
+          Shown on share pages and receipts
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4 sm:grid-cols-2">
@@ -180,7 +194,7 @@ function InviteDialog() {
         <DialogHeader>
           <DialogTitle>Invite a teammate</DialogTitle>
           <DialogDescription>
-            Growth includes 5 seats — 3 are in use.
+            Teammates share the workspace credit wallet.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
@@ -348,6 +362,65 @@ function NotificationsCard() {
   );
 }
 
+function BillingCard({
+  paymentMethod,
+  plans,
+}: {
+  paymentMethod: PaymentMethod;
+  plans: CreditPlan[];
+}) {
+  return (
+    <Card id="billing">
+      <CardHeader>
+        <CardTitle>Billing &amp; credits</CardTitle>
+        <CardDescription>
+          One-time credit purchases · no subscription
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-14 items-center justify-center rounded-md border border-border bg-card">
+              <CreditCard
+                className="size-5 text-muted-foreground"
+                aria-hidden="true"
+              />
+            </div>
+            <div>
+              <p className="text-sm font-medium">Payment method</p>
+              <p className="text-xs text-muted-foreground capitalize">
+                {paymentMethod.brand} ·· {paymentMethod.last4} · expires{" "}
+                {String(paymentMethod.expMonth).padStart(2, "0")}/
+                {paymentMethod.expYear}
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              toast.info("Card update", {
+                description:
+                  "A secure Stripe portal session opens here in production.",
+              })
+            }
+          >
+            Update card
+          </Button>
+        </div>
+      </CardContent>
+      <CardFooter className="justify-between border-t border-border">
+        <Button asChild variant="ghost" size="sm">
+          <Link href="/billing">
+            <Receipt aria-hidden="true" /> Billing history
+          </Link>
+        </Button>
+        <BuyCreditsDialog plans={plans} />
+      </CardFooter>
+    </Card>
+  );
+}
+
 function DangerZoneCard() {
   return (
     <Card className="border-destructive/30">
@@ -398,15 +471,20 @@ export function SettingsView({
   user,
   workspace,
   members,
+  paymentMethod,
+  plans,
 }: {
   user: CurrentUser;
   workspace: Workspace;
   members: TeamMember[];
+  paymentMethod: PaymentMethod;
+  plans: CreditPlan[];
 }) {
   return (
     <div className="space-y-6">
       <ProfileCard user={user} />
       <WorkspaceCard workspace={workspace} />
+      <BillingCard paymentMethod={paymentMethod} plans={plans} />
       <TeamCard members={members} />
       <NotificationsCard />
       <DangerZoneCard />

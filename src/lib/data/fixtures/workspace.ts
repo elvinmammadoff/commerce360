@@ -2,17 +2,17 @@ import type { CurrentUser, TeamMember, Workspace } from "@/lib/types";
 
 /**
  * Demo persona: Fernhaven Home — a furniture brand one week into onboarding
- * its first collection. Every number elsewhere (credits, jobs, invoices)
- * stays consistent with this timeline.
+ * its first collection. Every number elsewhere (credit wallet, purchases,
+ * jobs) stays consistent with this timeline: 1 free signup credit + 30
+ * purchased (Studio 5 + Workshop 25), less 7 renders, plus 2 refunds = 26.
  */
 export const workspace: Workspace = {
   id: "ws_fernhaven",
   name: "Fernhaven Home",
   slug: "fernhaven",
-  plan: "growth",
-  creditsBalance: 75,
-  creditsPerMonth: 80,
-  renewsAt: "2026-07-26T09:00:00Z",
+  creditsBalance: 26,
+  totalPurchased: 30,
+  creditsUsed: 7,
   createdAt: "2026-06-26T09:00:00Z",
 };
 

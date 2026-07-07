@@ -1,21 +1,17 @@
 "use client";
 
-import * as React from "react";
 import {
   CircleMinus,
-  CirclePlus,
   Coins,
   Gift,
   RotateCcw,
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
-import { toast } from "sonner";
 
 import { AnimatedNumber } from "@/components/shared/animated-number";
 import { RelativeTime } from "@/components/shared/relative-time";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { BuyCreditsDialog } from "@/components/app/credits/buy-credits-dialog";
 import {
   Card,
   CardContent,
@@ -24,16 +20,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/progress";
-import {
   Table,
   TableBody,
   TableCell,
@@ -41,134 +27,35 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatCurrency, formatDate } from "@/lib/format";
 import { useSimulation } from "@/lib/simulation/provider";
 import { cn } from "@/lib/utils";
 import type {
   CreditEntry,
   CreditEntryType,
-  CreditPack,
+  CreditPlan,
   Workspace,
 } from "@/lib/types";
 
 const ENTRY_META: Record<CreditEntryType, { icon: LucideIcon; color: string }> = {
   generation: { icon: CircleMinus, color: "text-muted-foreground" },
   refund: { icon: RotateCcw, color: "text-warning" },
-  plan_grant: { icon: CirclePlus, color: "text-success" },
   pack_purchase: { icon: Coins, color: "text-success" },
   bonus: { icon: Gift, color: "text-brand" },
 };
 
-function BuyCreditsDialog({ packs }: { packs: CreditPack[] }) {
-  const { purchaseCredits } = useSimulation();
-  const [open, setOpen] = React.useState(false);
-  const [selected, setSelected] = React.useState<string>(
-    packs.find((p) => p.bestValue)?.id ?? packs[0]?.id,
-  );
-  const [purchasing, setPurchasing] = React.useState(false);
-
-  const pack = packs.find((p) => p.id === selected);
-
-  const buy = () => {
-    if (!pack || purchasing) return;
-    setPurchasing(true);
-    // Brief pause reads as a real payment round-trip.
-    window.setTimeout(() => {
-      purchaseCredits(pack.credits);
-      setPurchasing(false);
-      setOpen(false);
-      toast.success(`${pack.credits} credits added`, {
-        description: `${formatCurrency(pack.price)} charged to Visa ·· 4242.`,
-      });
-    }, 1100);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm">
-          <Coins aria-hidden="true" /> Buy credits
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Top up credits</DialogTitle>
-          <DialogDescription>
-            Packs never expire and stack on top of your monthly plan credits.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-2" role="radiogroup" aria-label="Credit packs">
-          {packs.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              role="radio"
-              aria-checked={selected === p.id}
-              onClick={() => setSelected(p.id)}
-              className={cn(
-                "flex items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors duration-150 outline-none",
-                "focus-visible:ring-3 focus-visible:ring-ring/50",
-                selected === p.id
-                  ? "border-brand/60 bg-brand/10"
-                  : "border-border bg-card hover:border-muted-foreground/40",
-              )}
-            >
-              <span className="flex items-center gap-3">
-                <span className="text-sm font-semibold tabular-nums">
-                  {p.credits} credits
-                </span>
-                {p.bestValue && (
-                  <Badge className="bg-brand/15 text-brand" variant="outline">
-                    Best value
-                  </Badge>
-                )}
-              </span>
-              <span className="text-right">
-                <span className="block text-sm font-medium">
-                  {formatCurrency(p.price)}
-                </span>
-                <span className="block text-xs text-muted-foreground">
-                  {formatCurrency(p.perCredit, true)}/credit
-                </span>
-              </span>
-            </button>
-          ))}
-        </div>
-        <DialogFooter>
-          <Button
-            type="button"
-            className="w-full"
-            onClick={buy}
-            disabled={purchasing || !pack}
-          >
-            {purchasing
-              ? "Processing payment…"
-              : pack
-                ? `Pay ${formatCurrency(pack.price)}`
-                : "Select a pack"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 export function CreditsView({
   workspace,
   ledger,
-  packs,
+  plans,
 }: {
   workspace: Workspace;
   ledger: CreditEntry[];
-  packs: CreditPack[];
+  plans: CreditPlan[];
 }) {
   const sim = useSimulation();
-  const usedThisCycle = ledger
-    .filter((e) => e.type === "generation")
-    .reduce((sum, e) => sum + Math.abs(e.amount), 0) + sim.jobs.length;
-  const refunded = ledger
-    .filter((e) => e.type === "refund")
-    .reduce((sum, e) => sum + e.amount, 0);
+  // Wallet totals stay live as the demo user renders and buys credits.
+  const totalPurchased = workspace.totalPurchased + sim.creditsPurchased;
+  const creditsUsed = workspace.creditsUsed + sim.creditsUsed;
 
   return (
     <div className="space-y-6">
@@ -176,32 +63,27 @@ export function CreditsView({
         <Card className="lg:col-span-2">
           <CardContent className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
             <div>
-              <p className="text-sm text-muted-foreground">Available credits</p>
+              <p className="text-sm text-muted-foreground">Current balance</p>
               <p className="mt-1 text-5xl font-semibold tracking-tight">
                 <AnimatedNumber value={sim.creditsBalance} />
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
-                +{workspace.creditsPerMonth} on {formatDate(workspace.renewsAt)}{" "}
-                with your Growth renewal · unused credits roll over
+                Credits never expire · each render consumes 1 credit
               </p>
             </div>
             <div className="w-full sm:w-56">
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>This cycle</span>
-                <span className="tabular-nums">
-                  {usedThisCycle} used · {refunded} refunded
-                </span>
-              </div>
-              <Progress
-                value={Math.min(
-                  100,
-                  (usedThisCycle / workspace.creditsPerMonth) * 100,
-                )}
-                className="mt-2 h-1.5"
-                aria-label="Credits used this cycle"
-              />
+              <dl className="space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <dt className="text-muted-foreground">Total purchased</dt>
+                  <dd className="font-medium tabular-nums">{totalPurchased}</dd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <dt className="text-muted-foreground">Credits used</dt>
+                  <dd className="font-medium tabular-nums">{creditsUsed}</dd>
+                </div>
+              </dl>
               <div className="mt-4 flex justify-end">
-                <BuyCreditsDialog packs={packs} />
+                <BuyCreditsDialog plans={plans} />
               </div>
             </div>
           </CardContent>
@@ -229,9 +111,9 @@ export function CreditsView({
 
       <Card>
         <CardHeader>
-          <CardTitle>Ledger</CardTitle>
+          <CardTitle>Recent usage</CardTitle>
           <CardDescription>
-            Every grant, spend, and refund in the workspace wallet
+            Every purchase, render, and refund in your credit wallet
           </CardDescription>
         </CardHeader>
         <CardContent>

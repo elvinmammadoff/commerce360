@@ -52,4 +52,4 @@ later, update `src/lib/demo-assets.ts` and the two completed products in
 - Replace `SimulationProvider` actions with real job creation + realtime
   subscriptions; pipeline stage ids in `src/lib/pipeline.ts` already mirror
   the production architecture.
-- Auth: `/login` is a styled mock that routes to `/dashboard`.
+- Auth: `/login` and `/signup` are styled mocks that route to `/dashboard`.

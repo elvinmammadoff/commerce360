@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -9,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+
+type AuthMode = "login" | "signup";
 
 function GoogleMark() {
   return (
@@ -33,13 +36,14 @@ function GoogleMark() {
   );
 }
 
-export function LoginForm() {
+export function LoginForm({ mode = "login" }: { mode?: AuthMode }) {
   const router = useRouter();
+  const isSignup = mode === "signup";
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [pending, setPending] = React.useState<"email" | "sso" | null>(null);
 
-  const signIn = (method: "email" | "sso") => {
+  const submit = (method: "email" | "sso") => {
     if (pending) return;
     if (method === "email" && !/^\S+@\S+\.\S+$/.test(email)) {
       toast.error("Enter a valid email address");
@@ -56,7 +60,7 @@ export function LoginForm() {
         type="button"
         variant="outline"
         className="w-full"
-        onClick={() => signIn("sso")}
+        onClick={() => submit("sso")}
         disabled={pending !== null}
       >
         {pending === "sso" ? (
@@ -77,7 +81,7 @@ export function LoginForm() {
         className="space-y-4"
         onSubmit={(e) => {
           e.preventDefault();
-          signIn("email");
+          submit("email");
         }}
       >
         <div className="space-y-2">
@@ -94,22 +98,25 @@ export function LoginForm() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password">Password</Label>
-            <button
-              type="button"
-              className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-              onClick={() =>
-                toast.info("Reset link sent", {
-                  description: "Check your inbox for the password reset email.",
-                })
-              }
-            >
-              Forgot password?
-            </button>
+            {!isSignup && (
+              <button
+                type="button"
+                className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                onClick={() =>
+                  toast.info("Reset link sent", {
+                    description:
+                      "Check your inbox for the password reset email.",
+                  })
+                }
+              >
+                Forgot password?
+              </button>
+            )}
           </div>
           <Input
             id="password"
             type="password"
-            autoComplete="current-password"
+            autoComplete={isSignup ? "new-password" : "current-password"}
             placeholder="••••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -119,9 +126,39 @@ export function LoginForm() {
           {pending === "email" && (
             <Loader2 className="animate-spin" aria-hidden="true" />
           )}
-          {pending === "email" ? "Signing in…" : "Sign in"}
+          {isSignup
+            ? pending === "email"
+              ? "Creating account…"
+              : "Create account"
+            : pending === "email"
+              ? "Signing in…"
+              : "Sign in"}
         </Button>
       </form>
+
+      <p className="text-center text-sm text-muted-foreground">
+        {isSignup ? (
+          <>
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              Sign in
+            </Link>
+          </>
+        ) : (
+          <>
+            New to Commerce360?{" "}
+            <Link
+              href="/signup"
+              className="font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              Create an account
+            </Link>
+          </>
+        )}
+      </p>
 
       <p className="text-center text-xs text-muted-foreground">
         Exploring the demo? Any email opens the Fernhaven Home workspace.

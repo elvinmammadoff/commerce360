@@ -10,38 +10,36 @@
 // Plans & billing
 // ---------------------------------------------------------------------------
 
+/** Segments used only by the internal admin analytics view. */
 export type PlanId = "starter" | "growth" | "scale" | "enterprise";
 
-export interface Plan {
-  id: PlanId;
-  name: string;
-  tagline: string;
-  priceMonthly: number | null; // USD; null = custom pricing
-  priceYearly: number | null; // USD per month, billed annually
-  creditsPerMonth: number | null; // null = custom pool
-  frameResolution: "2048²" | "4K";
-  videoResolution: "1080p" | "4K";
-  seats: number | null;
-  features: string[];
-  highlighted?: boolean;
-}
-
-export interface CreditPack {
+/**
+ * One-time credit purchase plan (a "credit pack"). No recurring billing —
+ * each plan is a single Stripe checkout that adds credits to the wallet.
+ * 1 credit = 1 complete pipeline render.
+ */
+export interface CreditPlan {
   id: string;
+  name: string;
+  price: number; // one-time USD
   credits: number;
-  price: number; // USD
-  perCredit: number; // USD
-  bestValue?: boolean;
+  perProduct: number; // effective USD per product
+  features: string[];
+  cta: string; // button label, e.g. "Buy Starter"
+  highlighted?: boolean; // "Most popular" card
 }
 
-export type InvoiceStatus = "paid" | "open" | "upcoming" | "refunded";
+/** Stripe payment status for a one-time purchase. */
+export type PaymentStatus = "succeeded" | "processing" | "refunded" | "failed";
 
-export interface Invoice {
-  id: string; // e.g. INV-2026-0583
-  date: string; // ISO
-  description: string;
-  amount: number; // USD
-  status: InvoiceStatus;
+/** A single one-time Stripe credit purchase (no recurring invoices). */
+export interface Purchase {
+  id: string; // Stripe PaymentIntent id, e.g. pi_3Q7...
+  packName: string; // credit pack purchased, e.g. "Studio"
+  credits: number; // credits added to the wallet
+  amount: number; // USD charged
+  purchasedAt: string; // ISO
+  status: PaymentStatus;
 }
 
 export interface PaymentMethod {
@@ -58,7 +56,6 @@ export interface PaymentMethod {
 export type CreditEntryType =
   | "generation"
   | "refund"
-  | "plan_grant"
   | "pack_purchase"
   | "bonus";
 
@@ -169,10 +166,10 @@ export interface Workspace {
   id: string;
   name: string;
   slug: string;
-  plan: PlanId;
-  creditsBalance: number;
-  creditsPerMonth: number;
-  renewsAt: string; // ISO
+  /** Credit wallet — one-time purchase model, no subscription. */
+  creditsBalance: number; // available credits, ready to spend
+  totalPurchased: number; // lifetime credits bought (settled purchases)
+  creditsUsed: number; // lifetime credits consumed by renders
   createdAt: string;
 }
 
@@ -208,7 +205,6 @@ export type ActivityType =
   | "download"
   | "member_invited"
   | "api_key_created"
-  | "plan_started"
   | "credits_added";
 
 export interface ActivityEvent {
@@ -262,8 +258,8 @@ export interface EngagementPoint {
 }
 
 export interface AdminStats {
-  mrr: number;
-  mrrGrowthPct: number;
+  revenue: number; // one-time credit sales, trailing 30 days (USD)
+  revenueGrowthPct: number;
   activeWorkspaces: number;
   workspacesGrowthPct: number;
   jobsToday: number;
@@ -275,7 +271,7 @@ export interface AdminStats {
 
 export interface RevenuePoint {
   month: string; // "Feb", …
-  mrr: number;
+  revenue: number; // credit sales that month (USD)
   workspaces: number;
 }
 
@@ -285,7 +281,7 @@ export interface AdminWorkspaceRow {
   plan: PlanId;
   products: number;
   creditsUsed: number;
-  mrr: number;
+  revenue: number; // lifetime credit spend (USD)
   status: "active" | "trial" | "past_due";
   joinedAt: string;
 }

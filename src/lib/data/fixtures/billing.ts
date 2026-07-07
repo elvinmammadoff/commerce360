@@ -1,107 +1,83 @@
-import type { CreditPack, Invoice, PaymentMethod, Plan } from "@/lib/types";
+import type { CreditPlan, PaymentMethod, Purchase } from "@/lib/types";
 
-export const plans: Plan[] = [
+/**
+ * Public, one-time credit purchase plans. Credits never expire and there is no
+ * subscription — each plan is a single Stripe checkout.
+ */
+export const creditPlans: CreditPlan[] = [
   {
     id: "starter",
     name: "Starter",
-    tagline: "For your first product pages",
-    priceMonthly: 29,
-    priceYearly: 24,
-    creditsPerMonth: 20,
-    frameResolution: "2048²",
-    videoResolution: "1080p",
-    seats: 2,
+    price: 9,
+    credits: 1,
+    perProduct: 9,
+    cta: "Buy Starter",
     features: [
-      "20 renders per month",
-      "360° viewer + embed code",
-      "Orbit video in 1080p",
-      "72 frames at 2048²",
-      "Amazon & Shopify image sets",
-      "Email support",
+      "1 complete render",
+      "4K MP4",
+      "72 frames",
+      "Public share page",
     ],
   },
   {
-    id: "growth",
-    name: "Growth",
-    tagline: "For catalogs that ship weekly",
-    priceMonthly: 79,
-    priceYearly: 66,
-    creditsPerMonth: 80,
-    frameResolution: "2048²",
-    videoResolution: "4K",
-    seats: 5,
+    id: "studio",
+    name: "Studio",
+    price: 40,
+    credits: 5,
+    perProduct: 8,
     highlighted: true,
-    features: [
-      "80 renders per month",
-      "Everything in Starter",
-      "Orbit video in 4K",
-      "Priority render queue",
-      "Hosted share pages",
-      "Version history & re-renders",
-      "Chat support",
-    ],
+    cta: "Buy Studio",
+    features: ["Everything in Starter", "Bulk rendering"],
   },
   {
-    id: "scale",
-    name: "Scale",
-    tagline: "For teams automating their pipeline",
-    priceMonthly: 199,
-    priceYearly: 166,
-    creditsPerMonth: 250,
-    frameResolution: "4K",
-    videoResolution: "4K",
-    seats: 15,
-    features: [
-      "250 renders per month",
-      "Everything in Growth",
-      "Frames at native 4K",
-      "REST API & webhooks",
-      "Bulk upload (CSV / feed)",
-      "Dedicated render capacity",
-      "Priority support",
-    ],
+    id: "workshop",
+    name: "Workshop",
+    price: 175,
+    credits: 25,
+    perProduct: 7,
+    cta: "Buy Workshop",
+    features: ["Everything in Studio", "Priority render queue"],
   },
   {
-    id: "enterprise",
-    name: "Enterprise",
-    tagline: "For marketplaces and retail groups",
-    priceMonthly: null,
-    priceYearly: null,
-    creditsPerMonth: null,
-    frameResolution: "4K",
-    videoResolution: "4K",
-    seats: null,
-    features: [
-      "Custom credit pools",
-      "White-label viewer & share pages",
-      "SSO / SAML",
-      "99.9% uptime SLA",
-      "Custom render pipelines",
-      "Dedicated success manager",
-    ],
+    id: "factory",
+    name: "Factory",
+    price: 600,
+    credits: 100,
+    perProduct: 6,
+    cta: "Buy Factory",
+    features: ["Everything in Workshop", "Dedicated processing"],
   },
 ];
 
-export const creditPacks: CreditPack[] = [
-  { id: "pack_25", credits: 25, price: 39, perCredit: 1.56 },
-  { id: "pack_100", credits: 100, price: 129, perCredit: 1.29, bestValue: true },
-  { id: "pack_500", credits: 500, price: 549, perCredit: 1.1 },
-];
-
-export const invoices: Invoice[] = [
+/**
+ * One-time Stripe purchase history, newest first. No recurring invoices.
+ * Settled purchases (status "succeeded") add up to the wallet's total
+ * purchased credits (30); the "processing" charge has not settled yet.
+ */
+export const purchases: Purchase[] = [
   {
-    id: "INV-2026-0612",
-    date: "2026-07-26T09:00:00Z",
-    description: "Growth plan · monthly",
-    amount: 79,
-    status: "upcoming",
+    id: "pi_3Q7FactoryProc00",
+    packName: "Factory",
+    credits: 100,
+    amount: 600,
+    purchasedAt: "2026-07-05T08:30:00Z",
+    status: "processing",
   },
   {
-    id: "INV-2026-0583",
-    date: "2026-06-26T09:00:00Z",
-    description: "Growth plan · monthly",
-    amount: 79,
-    status: "paid",
+    id: "pi_3Q1WorkshopPaid0",
+    packName: "Workshop",
+    credits: 25,
+    amount: 175,
+    purchasedAt: "2026-07-01T12:00:00Z",
+    status: "succeeded",
+  },
+  {
+    id: "pi_3Q0StudioPaid000",
+    packName: "Studio",
+    credits: 5,
+    amount: 40,
+    purchasedAt: "2026-06-26T09:05:00Z",
+    status: "succeeded",
   },
 ];
 

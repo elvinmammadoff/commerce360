@@ -56,8 +56,8 @@ const TRUST = [
   "No studio",
   "No 3D artist",
   "No credit card to start",
-  "3 free renders every month",
-  "Cancel anytime, no commitments",
+  "1 free credit on signup",
+  "No subscription — credits never expire",
 ];
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -159,7 +159,7 @@ export function Hero() {
                 size="lg"
                 className="h-11 border-transparent bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] px-6 text-white shadow-[0_8px_28px_-8px_rgba(124,92,246,0.6)] hover:text-white hover:shadow-[0_10px_34px_-6px_rgba(124,92,246,0.85)]"
               >
-                <Link href="/login">
+                <Link href="/signup">
                   Start free
                   <ArrowRight aria-hidden="true" />
                 </Link>

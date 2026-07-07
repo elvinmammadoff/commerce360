@@ -28,7 +28,7 @@ export const testimonials: Testimonial[] = [
   },
   {
     quote:
-      "Our Amazon listings finally look like the big brands'. The marketplace set alone covers the subscription.",
+      "Our Amazon listings finally look like the big brands'. The marketplace set alone pays for the credit.",
     name: "Dana Whitfield",
     title: "Marketplace Lead",
     company: "Volt & Vine Electronics",
@@ -82,9 +82,9 @@ export const faqs: Faq[] = [
       "One credit = one full render of one product, including every output format. Re-renders with different settings cost one credit each. Failed renders are refunded automatically.",
   },
   {
-    question: "Do unused credits roll over?",
+    question: "Do credits expire?",
     answer:
-      "Yes. Credits live in your workspace wallet and never expire while your subscription is active. Top-up packs are available if you run out mid-cycle.",
+      "Never. Credits are a one-time purchase that live in your workspace wallet indefinitely — there's no subscription and nothing to cancel. Buy more whenever you need them.",
   },
   {
     question: "Can I use the assets commercially?",
@@ -99,7 +99,7 @@ export const faqs: Faq[] = [
   {
     question: "Is there an API?",
     answer:
-      "Scale and Enterprise plans include a REST API with webhooks, so new SKUs from your PIM or Shopify feed can be rendered automatically. Docs live in the dashboard.",
+      "Yes. A REST API with webhooks is available so new SKUs from your PIM or Shopify feed can be rendered automatically — each render simply draws one credit from your wallet. Docs live in the dashboard.",
   },
 ];
 

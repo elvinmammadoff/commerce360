@@ -1,12 +1,11 @@
 "use client";
 
-import { Clock3, Coins, Package, Sparkles } from "lucide-react";
+import { Coins, Package, ShoppingBag, Sparkles } from "lucide-react";
 
 import { AnimatedNumber } from "@/components/shared/animated-number";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatDuration } from "@/lib/format";
 import { useSimulation } from "@/lib/simulation/provider";
-import type { GenerationJob, Product, Workspace } from "@/lib/types";
+import type { Product, Workspace } from "@/lib/types";
 
 function StatCard({
   label,
@@ -46,55 +45,43 @@ function StatCard({
 
 export function StatCards({
   products,
-  jobs,
   workspace,
 }: {
   products: Product[];
-  jobs: GenerationJob[];
   workspace: Workspace;
 }) {
   const sim = useSimulation();
 
   const allProducts = [...sim.products, ...products];
-  const completedJobs = [
-    ...sim.jobs.filter((j) => j.status === "completed"),
-    ...jobs.filter((j) => j.status === "completed"),
-  ];
-  const completedWithDuration = completedJobs.filter(
-    (j) => j.durationSeconds !== null,
-  );
-  const avgRender =
-    completedWithDuration.length > 0
-      ? completedWithDuration.reduce((sum, j) => sum + (j.durationSeconds ?? 0), 0) /
-        completedWithDuration.length
-      : 0;
+  // Live credit wallet — no subscription, one-time purchases only.
+  const totalPurchased = workspace.totalPurchased + sim.creditsPurchased;
+  const creditsUsed = workspace.creditsUsed + sim.creditsUsed;
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <StatCard
+        label="Available credits"
+        value={sim.creditsBalance}
+        hint="Ready to spend · never expire"
+        icon={Coins}
+      />
+      <StatCard
+        label="Credits used"
+        value={creditsUsed}
+        hint="1 credit per render"
+        icon={Sparkles}
+      />
+      <StatCard
+        label="Total purchased"
+        value={totalPurchased}
+        hint="Lifetime credits bought"
+        icon={ShoppingBag}
+      />
       <StatCard
         label="Products"
         value={allProducts.length}
         hint={`${allProducts.filter((p) => p.status === "completed").length} with live viewers`}
         icon={Package}
-      />
-      <StatCard
-        label="Credits remaining"
-        value={sim.creditsBalance}
-        suffix={` / ${workspace.creditsPerMonth}`}
-        hint="Renews Jul 26 · credits roll over"
-        icon={Coins}
-      />
-      <StatCard
-        label="Renders completed"
-        value={completedJobs.length}
-        hint="Since workspace creation"
-        icon={Sparkles}
-      />
-      <StatCard
-        label="Avg render time"
-        value={avgRender > 0 ? formatDuration(avgRender) : "—"}
-        hint="Photo to packaged assets"
-        icon={Clock3}
       />
     </div>
   );

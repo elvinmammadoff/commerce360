@@ -77,15 +77,15 @@ export function FinalCta() {
               {...enter(0.18)}
               className="mx-auto mt-4 max-w-xl text-pretty text-muted-foreground"
             >
-              Start with three free renders. If the viewer doesn&apos;t lift
-              your product pages, delete the workspace — no card required.
+              Start with one free credit. If the viewer doesn&apos;t lift your
+              product pages, delete the workspace — no card required.
             </motion.p>
             <motion.div
               {...enter(0.26)}
               className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
             >
               <Button asChild size="lg" className="glow-brand h-11 px-6">
-                <Link href="/login">
+                <Link href="/signup">
                   Start free <ArrowRight aria-hidden="true" />
                 </Link>
               </Button>
