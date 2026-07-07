@@ -89,7 +89,7 @@ export const faqs: Faq[] = [
   {
     question: "Can I use the assets commercially?",
     answer:
-      "Yes — you own everything we generate from your photos, with full commercial rights and no watermarks on any paid plan.",
+      "Yes — you own everything we generate from your photos, with full commercial rights and no watermarks on any credit pack.",
   },
   {
     question: "How do the marketplace image sets work?",

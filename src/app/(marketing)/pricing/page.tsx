@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { FaqSection } from "@/components/marketing/faq-section";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { PricingSection } from "@/components/marketing/pricing-section";
-import { getCreditPlans, getFaqs } from "@/lib/data";
+import { getCreditPacks, getFaqs } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -12,14 +12,14 @@ export const metadata: Metadata = {
 };
 
 export default async function PricingPage() {
-  const [plans, faqs] = await Promise.all([getCreditPlans(), getFaqs()]);
+  const [packs, faqs] = await Promise.all([getCreditPacks(), getFaqs()]);
   const billingFaqs = faqs.filter((faq) =>
     /credit|expire|commercial/i.test(faq.question),
   );
 
   return (
     <div className="pt-16">
-      <PricingSection plans={plans} id="plans" />
+      <PricingSection packs={packs} id="packs" />
 
       <FaqSection items={billingFaqs.length > 0 ? billingFaqs : faqs.slice(0, 4)} />
       <FinalCta />

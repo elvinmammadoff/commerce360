@@ -63,7 +63,7 @@ import {
 } from "@/components/ui/table";
 import { formatDate } from "@/lib/format";
 import type {
-  CreditPlan,
+  CreditPack,
   CurrentUser,
   PaymentMethod,
   TeamMember,
@@ -364,10 +364,10 @@ function NotificationsCard() {
 
 function BillingCard({
   paymentMethod,
-  plans,
+  packs,
 }: {
   paymentMethod: PaymentMethod;
-  plans: CreditPlan[];
+  packs: CreditPack[];
 }) {
   return (
     <Card id="billing">
@@ -415,7 +415,7 @@ function BillingCard({
             <Receipt aria-hidden="true" /> Billing history
           </Link>
         </Button>
-        <BuyCreditsDialog plans={plans} />
+        <BuyCreditsDialog packs={packs} />
       </CardFooter>
     </Card>
   );
@@ -472,19 +472,19 @@ export function SettingsView({
   workspace,
   members,
   paymentMethod,
-  plans,
+  packs,
 }: {
   user: CurrentUser;
   workspace: Workspace;
   members: TeamMember[];
   paymentMethod: PaymentMethod;
-  plans: CreditPlan[];
+  packs: CreditPack[];
 }) {
   return (
     <div className="space-y-6">
       <ProfileCard user={user} />
       <WorkspaceCard workspace={workspace} />
-      <BillingCard paymentMethod={paymentMethod} plans={plans} />
+      <BillingCard paymentMethod={paymentMethod} packs={packs} />
       <TeamCard members={members} />
       <NotificationsCard />
       <DangerZoneCard />

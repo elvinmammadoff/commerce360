@@ -18,7 +18,7 @@ import {
 import { formatCurrency } from "@/lib/format";
 import { useSimulation } from "@/lib/simulation/provider";
 import { cn } from "@/lib/utils";
-import type { CreditPlan } from "@/lib/types";
+import type { CreditPack } from "@/lib/types";
 
 /**
  * One-time credit purchase dialog. Buys a credit pack via (simulated) Stripe
@@ -26,31 +26,31 @@ import type { CreditPlan } from "@/lib/types";
  * Pass a custom `trigger`; otherwise a default "Buy credits" button renders.
  */
 export function BuyCreditsDialog({
-  plans,
+  packs,
   trigger,
 }: {
-  plans: CreditPlan[];
+  packs: CreditPack[];
   trigger?: React.ReactNode;
 }) {
   const { purchaseCredits } = useSimulation();
   const [open, setOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<string>(
-    plans.find((p) => p.highlighted)?.id ?? plans[0]?.id,
+    packs.find((p) => p.highlighted)?.id ?? packs[0]?.id,
   );
   const [purchasing, setPurchasing] = React.useState(false);
 
-  const plan = plans.find((p) => p.id === selected);
+  const pack = packs.find((p) => p.id === selected);
 
   const buy = () => {
-    if (!plan || purchasing) return;
+    if (!pack || purchasing) return;
     setPurchasing(true);
     // Brief pause reads as a real Stripe payment round-trip.
     window.setTimeout(() => {
-      purchaseCredits(plan.credits);
+      purchaseCredits(pack.credits);
       setPurchasing(false);
       setOpen(false);
-      toast.success(`${plan.credits} credits added`, {
-        description: `${formatCurrency(plan.price)} charged to Visa ·· 4242.`,
+      toast.success(`${pack.credits} credits added`, {
+        description: `${formatCurrency(pack.price)} charged to Visa ·· 4242.`,
       });
     }, 1100);
   };
@@ -72,7 +72,7 @@ export function BuyCreditsDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-2" role="radiogroup" aria-label="Credit packs">
-          {plans.map((p) => (
+          {packs.map((p) => (
             <button
               key={p.id}
               type="button"
@@ -114,12 +114,12 @@ export function BuyCreditsDialog({
             type="button"
             className="w-full"
             onClick={buy}
-            disabled={purchasing || !plan}
+            disabled={purchasing || !pack}
           >
             {purchasing
               ? "Processing payment…"
-              : plan
-                ? `Pay ${formatCurrency(plan.price)}`
+              : pack
+                ? `Pay ${formatCurrency(pack.price)}`
                 : "Select a pack"}
           </Button>
         </DialogFooter>

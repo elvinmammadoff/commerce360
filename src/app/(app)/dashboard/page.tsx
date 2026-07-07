@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import {
   getActiveJobs,
   getActivity,
-  getCreditPlans,
+  getCreditPacks,
   getEngagementSeries,
   getProducts,
   getWorkspace,
@@ -23,14 +23,14 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardPage() {
-  const [workspace, products, activeJobs, activity, engagement, plans] =
+  const [workspace, products, activeJobs, activity, engagement, packs] =
     await Promise.all([
       getWorkspace(),
       getProducts(),
       getActiveJobs(),
       getActivity(),
       getEngagementSeries(),
-      getCreditPlans(),
+      getCreditPacks(),
     ]);
 
   return (
@@ -40,7 +40,7 @@ export default async function DashboardPage() {
         description={`What's happening across ${workspace.name}.`}
         actions={
           <BuyCreditsDialog
-            plans={plans}
+            packs={packs}
             trigger={
               <Button size="sm">
                 <Coins aria-hidden="true" /> Buy credits

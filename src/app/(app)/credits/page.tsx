@@ -2,17 +2,17 @@ import type { Metadata } from "next";
 
 import { CreditsView } from "@/components/app/credits/credits-view";
 import { PageHeader } from "@/components/shared/page-header";
-import { getCreditLedger, getCreditPlans, getWorkspace } from "@/lib/data";
+import { getCreditLedger, getCreditPacks, getWorkspace } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "Credits",
 };
 
 export default async function CreditsPage() {
-  const [workspace, ledger, plans] = await Promise.all([
+  const [workspace, ledger, packs] = await Promise.all([
     getWorkspace(),
     getCreditLedger(),
-    getCreditPlans(),
+    getCreditPacks(),
   ]);
 
   return (
@@ -21,7 +21,7 @@ export default async function CreditsPage() {
         title="Credits"
         description="One credit renders one product into every output format. Credits never expire."
       />
-      <CreditsView workspace={workspace} ledger={ledger} plans={plans} />
+      <CreditsView workspace={workspace} ledger={ledger} packs={packs} />
     </div>
   );
 }

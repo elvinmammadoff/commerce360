@@ -8,11 +8,11 @@ import { Logos } from "@/components/marketing/logos";
 import { ProductPipeline } from "@/components/marketing/product-pipeline";
 import { PricingSection } from "@/components/marketing/pricing-section";
 import { Testimonials } from "@/components/marketing/testimonials";
-import { getCreditPlans, getFaqs, getTestimonials } from "@/lib/data";
+import { getCreditPacks, getFaqs, getTestimonials } from "@/lib/data";
 
 export default async function LandingPage() {
-  const [plans, testimonials, faqs] = await Promise.all([
-    getCreditPlans(),
+  const [packs, testimonials, faqs] = await Promise.all([
+    getCreditPacks(),
     getTestimonials(),
     getFaqs(),
   ]);
@@ -26,7 +26,7 @@ export default async function LandingPage() {
       <Features />
       <Demo />
       <Testimonials items={testimonials} />
-      <PricingSection plans={plans} />
+      <PricingSection packs={packs} />
       <FaqSection items={faqs} />
       <FinalCta />
     </>

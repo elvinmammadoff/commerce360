@@ -1,13 +1,16 @@
 import {
+  ChartColumnBig,
   Code2,
   Coins,
   CreditCard,
   History,
   LayoutDashboard,
+  ListChecks,
   Package,
+  Receipt,
   Settings,
-  ShieldCheck,
   Upload,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 
@@ -15,6 +18,8 @@ export interface NavItem {
   label: string;
   href: string;
   icon: LucideIcon;
+  /** Match the pathname exactly — for index routes like /admin. */
+  exact?: boolean;
 }
 
 export interface NavGroup {
@@ -41,9 +46,36 @@ export const APP_NAV: NavGroup[] = [
       { label: "Settings", href: "/settings", icon: Settings },
     ],
   },
+];
+
+/** Admin console navigation — role-gated, rendered only inside /admin. */
+export const ADMIN_NAV: NavGroup[] = [
   {
-    label: "Internal",
-    items: [{ label: "Admin", href: "/admin", icon: ShieldCheck }],
+    label: "Platform",
+    items: [
+      { label: "Overview", href: "/admin", icon: LayoutDashboard, exact: true },
+    ],
+  },
+  {
+    label: "Manage",
+    items: [
+      { label: "Users", href: "/admin/users", icon: Users },
+      { label: "Orders", href: "/admin/orders", icon: Receipt },
+      { label: "Credits", href: "/admin/credits", icon: Coins },
+      { label: "Jobs", href: "/admin/jobs", icon: ListChecks },
+    ],
+  },
+  {
+    label: "Insights",
+    items: [
+      { label: "Analytics", href: "/admin/analytics", icon: ChartColumnBig },
+    ],
+  },
+  {
+    label: "System",
+    items: [
+      { label: "Settings", href: "/admin/settings", icon: Settings },
+    ],
   },
 ];
 

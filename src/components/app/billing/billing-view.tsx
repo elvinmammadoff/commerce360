@@ -26,7 +26,7 @@ import {
 import { formatCurrency, formatDate } from "@/lib/format";
 import { useSimulation } from "@/lib/simulation/provider";
 import type {
-  CreditPlan,
+  CreditPack,
   PaymentMethod,
   PaymentStatus,
   Purchase,
@@ -49,12 +49,12 @@ const PAYMENT_LABEL: Record<PaymentStatus, string> = {
 
 export function BillingView({
   workspace,
-  plans,
+  packs,
   purchases,
   paymentMethod,
 }: {
   workspace: Workspace;
-  plans: CreditPlan[];
+  packs: CreditPack[];
   purchases: Purchase[];
   paymentMethod: PaymentMethod;
 }) {
@@ -76,7 +76,7 @@ export function BillingView({
                 One-time credits · never expire · 1 credit per render
               </CardDescription>
             </div>
-            <BuyCreditsDialog plans={plans} />
+            <BuyCreditsDialog packs={packs} />
           </CardHeader>
           <CardContent>
             <dl className="grid grid-cols-3 gap-4">

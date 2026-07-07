@@ -1,7 +1,7 @@
 import { AppSidebar } from "@/components/app/app-sidebar";
 import { AppTopbar } from "@/components/app/app-topbar";
+import { getSessionUser } from "@/lib/auth";
 import {
-  getCurrentUser,
   getNotifications,
   getProducts,
   getWorkspace,
@@ -13,8 +13,10 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Session-aware: staff browsing the customer app keep their admin identity
+  // (and the "Admin console" shortcut in the account menu).
   const [user, workspace, notifications, products] = await Promise.all([
-    getCurrentUser(),
+    getSessionUser(),
     getWorkspace(),
     getNotifications(),
     getProducts(),

@@ -53,34 +53,37 @@ export function StatCards({
   const sim = useSimulation();
 
   const allProducts = [...sim.products, ...products];
-  // Live credit wallet — no subscription, one-time purchases only.
+  // Live credit wallet — one-time purchases only, credits never expire.
   const totalPurchased = workspace.totalPurchased + sim.creditsPurchased;
   const creditsUsed = workspace.creditsUsed + sim.creditsUsed;
+  const productsRendered = allProducts.filter(
+    (p) => p.status === "completed",
+  ).length;
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <StatCard
-        label="Available credits"
+        label="Current credit balance"
         value={sim.creditsBalance}
-        hint="Ready to spend · never expire"
+        hint="In your wallet · never expire"
         icon={Coins}
       />
       <StatCard
-        label="Credits used"
+        label="Lifetime credits purchased"
+        value={totalPurchased}
+        hint="Total credits bought"
+        icon={ShoppingBag}
+      />
+      <StatCard
+        label="Total credits used"
         value={creditsUsed}
         hint="1 credit per render"
         icon={Sparkles}
       />
       <StatCard
-        label="Total purchased"
-        value={totalPurchased}
-        hint="Lifetime credits bought"
-        icon={ShoppingBag}
-      />
-      <StatCard
-        label="Products"
-        value={allProducts.length}
-        hint={`${allProducts.filter((p) => p.status === "completed").length} with live viewers`}
+        label="Products rendered"
+        value={productsRendered}
+        hint={`${allProducts.length} total · ${productsRendered} with live viewers`}
         icon={Package}
       />
     </div>

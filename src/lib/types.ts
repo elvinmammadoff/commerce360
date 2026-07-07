@@ -7,18 +7,26 @@
  */
 
 // ---------------------------------------------------------------------------
-// Plans & billing
+// Roles & access control
 // ---------------------------------------------------------------------------
 
-/** Segments used only by the internal admin analytics view. */
-export type PlanId = "starter" | "growth" | "scale" | "enterprise";
+/**
+ * Platform-level role. Customers use the workspace app; admins additionally
+ * get the internal admin console at /admin. Distinct from `TeamRole`, which
+ * scopes permissions *within* a customer workspace.
+ */
+export type AppRole = "customer" | "admin";
+
+// ---------------------------------------------------------------------------
+// Credit packs & billing
+// ---------------------------------------------------------------------------
 
 /**
- * One-time credit purchase plan (a "credit pack"). No recurring billing —
- * each plan is a single Stripe checkout that adds credits to the wallet.
- * 1 credit = 1 complete pipeline render.
+ * A one-time credit pack. No recurring billing — each pack is a single Stripe
+ * checkout that adds credits to the wallet. 1 credit = 1 complete pipeline
+ * render.
  */
-export interface CreditPlan {
+export interface CreditPack {
   id: string;
   name: string;
   price: number; // one-time USD
@@ -180,6 +188,8 @@ export interface CurrentUser {
   title: string;
   initials: string;
   role: TeamRole;
+  /** Platform role — drives access to the internal admin console. */
+  appRole: AppRole;
 }
 
 export type TeamRole = "owner" | "admin" | "member";
@@ -257,33 +267,59 @@ export interface EngagementPoint {
   interactions: number; // viewer drags / plays
 }
 
+/** Platform-wide KPIs for the internal admin ops view — one-time credit model. */
 export interface AdminStats {
-  revenue: number; // one-time credit sales, trailing 30 days (USD)
+  totalRevenue: number; // lifetime credit sales (USD)
   revenueGrowthPct: number;
-  activeWorkspaces: number;
-  workspacesGrowthPct: number;
-  jobsToday: number;
-  successRatePct: number;
-  avgRenderSeconds: number;
-  gpuUtilizationPct: number;
-  uptimePct: number;
+  creditSales30d: number; // credit sales in the last 30 days (USD)
+  creditsSold: number; // lifetime credits sold
+  creditsUsed: number; // lifetime credits consumed by renders
+  totalUsers: number;
+  activeUsers: number; // active in the last 30 days
+  usersGrowthPct: number;
+  productsRendered: number; // lifetime completed renders
+  pendingJobs: number; // queued + running right now
+  failedJobs: number; // failed in the last 30 days
+  avgOrderValue: number; // USD per one-time purchase
 }
 
 export interface RevenuePoint {
   month: string; // "Feb", …
   revenue: number; // credit sales that month (USD)
-  workspaces: number;
+  creditsSold: number; // credits sold that month
 }
 
-export interface AdminWorkspaceRow {
+/** One day of platform-wide render throughput. */
+export interface DailyRenderPoint {
+  date: string; // ISO day
+  renders: number;
+}
+
+export type AdminUserStatus = "active" | "inactive" | "suspended";
+
+/** A customer account in the admin users table — credit wallet, no subscription. */
+export interface AdminUserRow {
   id: string;
+  name: string;
   company: string;
-  plan: PlanId;
-  products: number;
-  creditsUsed: number;
-  revenue: number; // lifetime credit spend (USD)
-  status: "active" | "trial" | "past_due";
+  email: string;
+  creditBalance: number; // available credits
+  creditsPurchased: number; // lifetime credits bought
+  creditsUsed: number; // lifetime credits consumed
+  purchases: number; // number of one-time purchases (purchase history size)
+  status: AdminUserStatus;
   joinedAt: string;
+}
+
+/** A single one-time credit purchase, platform-wide, for the admin orders table. */
+export interface AdminOrderRow {
+  id: string; // Stripe PaymentIntent id
+  customer: string; // company name
+  packName: string; // credit pack purchased
+  credits: number;
+  amount: number; // USD charged
+  purchasedAt: string; // ISO
+  status: PaymentStatus;
 }
 
 export interface AdminJobRow {
@@ -294,6 +330,42 @@ export interface AdminJobRow {
   status: JobStatus;
   progress: number;
   startedAt: string;
+  /** Failure reason — present on failed jobs only. */
+  error?: string;
+}
+
+/** One month of platform-wide render throughput. */
+export interface MonthlyRenderPoint {
+  month: string; // "Feb", …
+  renders: number;
+}
+
+/** Cumulative registered users, by month. */
+export interface UserGrowthPoint {
+  month: string; // "Feb", …
+  users: number;
+}
+
+/** A manual credit grant/deduction performed by Commerce360 staff. */
+export interface AdminAdjustment {
+  id: string; // adj_*
+  customer: string; // company name
+  amount: number; // credits; positive = grant, negative = deduction
+  reason: string;
+  admin: string; // staff member who performed it
+  createdAt: string; // ISO
+}
+
+export type AdminLedgerType = "render" | "refund" | "bonus" | "adjustment";
+
+/** One usage-history line on a customer's wallet, for the admin user profile. */
+export interface AdminLedgerEntry {
+  id: string;
+  userId: string; // AdminUserRow id
+  type: AdminLedgerType;
+  description: string;
+  amount: number; // credits; positive = grant, negative = spend
+  createdAt: string; // ISO
 }
 
 // ---------------------------------------------------------------------------

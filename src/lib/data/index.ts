@@ -8,16 +8,21 @@
 
 import type {
   ActivityEvent,
+  AdminAdjustment,
   AdminJobRow,
+  AdminLedgerEntry,
+  AdminOrderRow,
   AdminStats,
-  AdminWorkspaceRow,
+  AdminUserRow,
   ApiEndpoint,
   ApiKey,
   CreditEntry,
-  CreditPlan,
+  CreditPack,
   CurrentUser,
+  DailyRenderPoint,
   EngagementPoint,
   GenerationJob,
+  MonthlyRenderPoint,
   NotificationItem,
   PaymentMethod,
   Product,
@@ -26,18 +31,32 @@ import type {
   TeamMember,
   Testimonial,
   Faq,
+  UserGrowthPoint,
   Workspace,
 } from "@/lib/types";
 
 import { activityEvents, notifications } from "./fixtures/activity";
-import { adminJobs, adminStats, adminWorkspaces, engagementSeries, revenueSeries } from "./fixtures/analytics";
+import {
+  adminAdjustments,
+  adminJobs,
+  adminLedgers,
+  adminNotifications,
+  adminOrders,
+  adminStats,
+  adminUsers,
+  dailyRenders,
+  engagementSeries,
+  monthlyRenders,
+  revenueSeries,
+  userGrowth,
+} from "./fixtures/analytics";
 import { apiCodeSamples, apiEndpoints, apiKeys } from "./fixtures/api";
-import { creditPlans, paymentMethod, purchases } from "./fixtures/billing";
+import { creditPacks, paymentMethod, purchases } from "./fixtures/billing";
 import { creditLedger } from "./fixtures/credits";
 import { jobs } from "./fixtures/jobs";
 import { faqs, heroStats, testimonials, trustedByBrands } from "./fixtures/marketing";
 import { products } from "./fixtures/products";
-import { currentUser, teamMembers, workspace } from "./fixtures/workspace";
+import { adminAccount, adminStaff, currentUser, teamMembers, workspace } from "./fixtures/workspace";
 
 // -- Workspace & account ----------------------------------------------------
 
@@ -77,8 +96,8 @@ export async function getCreditLedger(): Promise<CreditEntry[]> {
   return creditLedger;
 }
 
-export async function getCreditPlans(): Promise<CreditPlan[]> {
-  return creditPlans;
+export async function getCreditPacks(): Promise<CreditPack[]> {
+  return creditPacks;
 }
 
 export async function getPurchases(): Promise<Purchase[]> {
@@ -127,12 +146,71 @@ export async function getRevenueSeries(): Promise<RevenuePoint[]> {
   return revenueSeries;
 }
 
-export async function getAdminWorkspaces(): Promise<AdminWorkspaceRow[]> {
-  return adminWorkspaces;
+export async function getDailyRenders(): Promise<DailyRenderPoint[]> {
+  return dailyRenders;
+}
+
+export async function getAdminUsers(): Promise<AdminUserRow[]> {
+  return adminUsers;
+}
+
+export async function getAdminUser(
+  id: string,
+): Promise<AdminUserRow | undefined> {
+  return adminUsers.find((u) => u.id === id);
+}
+
+export async function getAdminOrders(): Promise<AdminOrderRow[]> {
+  return adminOrders;
+}
+
+/** Purchase history for one customer, for the admin user profile. */
+export async function getAdminOrdersForCustomer(
+  company: string,
+): Promise<AdminOrderRow[]> {
+  return adminOrders.filter((o) => o.customer === company);
 }
 
 export async function getAdminJobs(): Promise<AdminJobRow[]> {
   return adminJobs;
+}
+
+/** Usage history (wallet ledger) for one customer, newest first. */
+export async function getAdminLedger(
+  userId: string,
+): Promise<AdminLedgerEntry[]> {
+  return adminLedgers
+    .filter((entry) => entry.userId === userId)
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+}
+
+export async function getAdminAdjustments(): Promise<AdminAdjustment[]> {
+  return adminAdjustments;
+}
+
+export async function getMonthlyRenders(): Promise<MonthlyRenderPoint[]> {
+  return monthlyRenders;
+}
+
+export async function getUserGrowth(): Promise<UserGrowthPoint[]> {
+  return userGrowth;
+}
+
+export async function getAdminNotifications(): Promise<NotificationItem[]> {
+  return adminNotifications;
+}
+
+// -- Admin account & staff -----------------------------------------------------
+
+export async function getAdminAccount(): Promise<CurrentUser> {
+  return adminAccount;
+}
+
+export async function getAdminStaff(): Promise<TeamMember[]> {
+  return adminStaff;
 }
 
 // -- Marketing content ------------------------------------------------------------

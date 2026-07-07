@@ -10,7 +10,13 @@ export const metadata: Metadata = {
   title: "Sign in",
 };
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const { next } = await searchParams;
+
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col p-6 sm:p-10">
@@ -30,7 +36,7 @@ export default function LoginPage() {
             Continue creating stunning 360° product experiences.
           </p>
           <div className="mt-8">
-            <LoginForm />
+            <LoginForm next={next} />
           </div>
         </div>
 

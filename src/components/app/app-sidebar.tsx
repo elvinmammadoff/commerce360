@@ -7,25 +7,33 @@ import { Plus } from "lucide-react";
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { APP_NAV } from "@/lib/navigation";
+import { APP_NAV, type NavGroup } from "@/lib/navigation";
 import { useSimulation } from "@/lib/simulation/provider";
 import { cn } from "@/lib/utils";
 import type { Workspace } from "@/lib/types";
 
-export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+export function SidebarNav({
+  groups = APP_NAV,
+  onNavigate,
+}: {
+  groups?: NavGroup[];
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
 
   return (
     <nav aria-label="Main" className="flex flex-1 flex-col gap-6 overflow-y-auto px-3 py-4">
-      {APP_NAV.map((group) => (
+      {groups.map((group) => (
         <div key={group.label}>
           <p className="px-2.5 pb-2 text-[11px] font-medium tracking-wider text-muted-foreground/70 uppercase">
             {group.label}
           </p>
           <ul className="space-y-0.5">
             {group.items.map((item) => {
-              const active =
-                pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const active = item.exact
+                ? pathname === item.href
+                : pathname === item.href ||
+                  pathname.startsWith(`${item.href}/`);
               return (
                 <li key={item.href}>
                   <Link

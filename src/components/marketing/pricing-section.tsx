@@ -12,16 +12,16 @@ import { Spotlight } from "@/components/marketing/spotlight";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { CreditPlan } from "@/lib/types";
+import type { CreditPack } from "@/lib/types";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 export function PricingSection({
-  plans,
+  packs,
   heading = "Pay per product. Credits never expire.",
   id = "pricing",
 }: {
-  plans: CreditPlan[];
+  packs: CreditPack[];
   heading?: string;
   id?: string;
 }) {
@@ -37,12 +37,12 @@ export function PricingSection({
           description="One credit = one complete pipeline render (Flux 2 → Seedance → SeeDVR → 72 frames → 4K video → Share page). Buy only what you need."
         />
 
-        <div className="mx-auto mt-14 grid max-w-6xl items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {plans.map((plan, i) => {
-            const isPro = Boolean(plan.highlighted);
+        <div className="mx-auto mt-14 grid max-w-screen-xl items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {packs.map((pack, i) => {
+            const isPro = Boolean(pack.highlighted);
             return (
               <motion.div
-                key={plan.id}
+                key={pack.id}
                 {...(reduceMotion
                   ? {}
                   : {
@@ -86,7 +86,7 @@ export function PricingSection({
 
                 {isPro && (
                   <>
-                    {/* Quiet brand wash at the top of the popular plan */}
+                    {/* Quiet brand wash at the top of the popular pack */}
                     <div
                       aria-hidden="true"
                       className="pointer-events-none absolute inset-x-0 top-0 h-32 rounded-t-3xl bg-[radial-gradient(120%_100%_at_50%_0%,color-mix(in_oklch,var(--brand)_18%,transparent),transparent)]"
@@ -98,21 +98,21 @@ export function PricingSection({
                 )}
 
                 <div className="relative">
-                  <h3 className="text-lg font-semibold tracking-tight">{plan.name}</h3>
+                  <h3 className="text-lg font-semibold tracking-tight">{pack.name}</h3>
                   <p className="mt-1.5 text-sm text-muted-foreground">
-                    {plan.credits} {plan.credits === 1 ? "Credit" : "Credits"}
+                    {pack.credits} {pack.credits === 1 ? "Credit" : "Credits"}
                   </p>
                 </div>
 
                 <p className="relative mt-6 flex items-baseline gap-1.5">
                   <span className="text-5xl font-semibold tracking-tight tabular-nums">
-                    {formatCurrency(plan.price)}
+                    {formatCurrency(pack.price)}
                   </span>
                   <span className="text-sm text-muted-foreground">One-time</span>
                 </p>
                 <p className="relative mt-2 text-sm text-muted-foreground">
                   <span className="font-medium text-foreground">
-                    {formatCurrency(plan.perProduct)}
+                    {formatCurrency(pack.perProduct)}
                   </span>{" "}
                   per product
                 </p>
@@ -127,13 +127,13 @@ export function PricingSection({
                   )}
                 >
                   <Link href="/signup">
-                    {plan.cta}
+                    {pack.cta}
                     <ArrowRight aria-hidden="true" />
                   </Link>
                 </Button>
 
                 <ul className="relative mt-7 space-y-3 border-t border-border/70 pt-6">
-                  {plan.features.map((feature) => (
+                  {pack.features.map((feature) => (
                     <li
                       key={feature}
                       className="flex items-start gap-3 text-sm text-foreground/80"

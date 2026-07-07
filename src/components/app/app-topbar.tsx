@@ -11,6 +11,7 @@ import {
   Menu,
   Plus,
   Settings,
+  ShieldCheck,
 } from "lucide-react";
 
 import { CommandMenu } from "@/components/app/command-menu";
@@ -35,6 +36,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { signOut } from "@/lib/auth-actions";
 import type {
   CurrentUser,
   NotificationItem,
@@ -130,10 +132,16 @@ export function AppTopbar({
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
+          {/* Role-gated: customers never see the admin console entry. */}
+          {user.appRole === "admin" && (
+            <DropdownMenuItem onSelect={() => router.push("/admin")}>
+              <ShieldCheck aria-hidden="true" /> Admin console
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem onSelect={() => router.push("/")}>
             <Globe aria-hidden="true" /> Marketing site
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => router.push("/login")}>
+          <DropdownMenuItem onSelect={() => void signOut()}>
             <LogOut aria-hidden="true" /> Sign out
           </DropdownMenuItem>
         </DropdownMenuContent>

@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -10,8 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { signInAs } from "@/lib/auth-actions";
+import type { AppRole } from "@/lib/types";
 
 type AuthMode = "login" | "signup";
+
+/** Placeholder email per role — purely cosmetic for the demo. */
+const DEMO_EMAIL: Record<AppRole, string> = {
+  customer: "maya@fernhaven.com",
+  admin: "jonas@commerce360.ai",
+};
 
 function GoogleMark() {
   return (
@@ -36,12 +43,29 @@ function GoogleMark() {
   );
 }
 
-export function LoginForm({ mode = "login" }: { mode?: AuthMode }) {
-  const router = useRouter();
+export function LoginForm({
+  mode = "login",
+  role = "customer",
+  next,
+}: {
+  mode?: AuthMode;
+  /**
+   * Role granted on sign-in. The public pages always use "customer"; the
+   * internal /admin/login page passes "admin". Signup is always a customer.
+   */
+  role?: AppRole;
+  /** Return path after auth — set by the middleware for guarded deep links. */
+  next?: string;
+}) {
   const isSignup = mode === "signup";
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [pending, setPending] = React.useState<"email" | "sso" | null>(null);
+  const [, startTransition] = React.useTransition();
+
+  // Signup always creates a customer workspace; admin access is staff-only.
+  const activeRole = isSignup ? "customer" : role;
+  const demoEmail = DEMO_EMAIL[activeRole];
 
   const submit = (method: "email" | "sso") => {
     if (pending) return;
@@ -50,8 +74,11 @@ export function LoginForm({ mode = "login" }: { mode?: AuthMode }) {
       return;
     }
     setPending(method);
-    // Small delay reads as a real auth round-trip before entering the demo workspace.
-    window.setTimeout(() => router.push("/dashboard"), 900);
+    // Small delay reads as a real auth round-trip; the server action then
+    // sets the role cookie and redirects to the right home.
+    window.setTimeout(() => {
+      startTransition(() => signInAs(activeRole, next));
+    }, 900);
   };
 
   return (
@@ -90,7 +117,7 @@ export function LoginForm({ mode = "login" }: { mode?: AuthMode }) {
             id="email"
             type="email"
             autoComplete="email"
-            placeholder="maya@fernhaven.com"
+            placeholder={demoEmail}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -132,36 +159,53 @@ export function LoginForm({ mode = "login" }: { mode?: AuthMode }) {
               : "Create account"
             : pending === "email"
               ? "Signing in…"
-              : "Sign in"}
-        </Button>
+              : role === "admin"
+                ? "Sign in to admin"
+                : "Sign in"}        </Button>
       </form>
 
-      <p className="text-center text-sm text-muted-foreground">
-        {isSignup ? (
-          <>
-            Already have an account?{" "}
-            <Link
-              href="/login"
-              className="font-medium text-foreground underline-offset-4 hover:underline"
-            >
-              Sign in
-            </Link>
-          </>
-        ) : (
-          <>
-            New to Commerce360?{" "}
-            <Link
-              href="/signup"
-              className="font-medium text-foreground underline-offset-4 hover:underline"
-            >
-              Create an account
-            </Link>
-          </>
-        )}
-      </p>
+      {role === "admin" ? (
+        <p className="text-center text-sm text-muted-foreground">
+          Not staff?{" "}
+          <Link
+            href="/login"
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            Customer sign in
+          </Link>
+        </p>
+      ) : (
+        <p className="text-center text-sm text-muted-foreground">
+          {isSignup ? (
+            <>
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="font-medium text-foreground underline-offset-4 hover:underline"
+              >
+                Sign in
+              </Link>
+            </>
+          ) : (
+            <>
+              New to Commerce360?{" "}
+              <Link
+                href="/signup"
+                className="font-medium text-foreground underline-offset-4 hover:underline"
+              >
+                Create an account
+              </Link>
+            </>
+          )}
+        </p>
+      )}
 
       <p className="text-center text-xs text-muted-foreground">
-        Exploring the demo? Any email opens the Fernhaven Home workspace.
+        {role === "admin"
+          ? "Internal access only. Any email opens the ops console."
+          : isSignup
+            ? "Exploring the demo? Any email opens the Fernhaven Home workspace."
+            : "Exploring the demo? Any email works."}
       </p>
     </div>
   );

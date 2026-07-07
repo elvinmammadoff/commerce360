@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { SettingsView } from "@/components/app/settings/settings-view";
 import { PageHeader } from "@/components/shared/page-header";
 import {
-  getCreditPlans,
+  getCreditPacks,
   getCurrentUser,
   getPaymentMethod,
   getTeamMembers,
@@ -15,12 +15,12 @@ export const metadata: Metadata = {
 };
 
 export default async function SettingsPage() {
-  const [user, workspace, members, paymentMethod, plans] = await Promise.all([
+  const [user, workspace, members, paymentMethod, packs] = await Promise.all([
     getCurrentUser(),
     getWorkspace(),
     getTeamMembers(),
     getPaymentMethod(),
-    getCreditPlans(),
+    getCreditPacks(),
   ]);
 
   return (
@@ -34,7 +34,7 @@ export default async function SettingsPage() {
         workspace={workspace}
         members={members}
         paymentMethod={paymentMethod}
-        plans={plans}
+        packs={packs}
       />
     </div>
   );

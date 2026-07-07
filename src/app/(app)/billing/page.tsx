@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { BillingView } from "@/components/app/billing/billing-view";
 import { PageHeader } from "@/components/shared/page-header";
 import {
-  getCreditPlans,
+  getCreditPacks,
   getPaymentMethod,
   getPurchases,
   getWorkspace,
@@ -14,9 +14,9 @@ export const metadata: Metadata = {
 };
 
 export default async function BillingPage() {
-  const [workspace, plans, purchases, paymentMethod] = await Promise.all([
+  const [workspace, packs, purchases, paymentMethod] = await Promise.all([
     getWorkspace(),
-    getCreditPlans(),
+    getCreditPacks(),
     getPurchases(),
     getPaymentMethod(),
   ]);
@@ -29,7 +29,7 @@ export default async function BillingPage() {
       />
       <BillingView
         workspace={workspace}
-        plans={plans}
+        packs={packs}
         purchases={purchases}
         paymentMethod={paymentMethod}
       />

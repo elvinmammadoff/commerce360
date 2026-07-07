@@ -23,7 +23,53 @@ export const currentUser: CurrentUser = {
   title: "Head of E-commerce",
   initials: "ML",
   role: "owner",
+  appRole: "customer",
 };
+
+/**
+ * Staff persona for the internal admin console — signs in via the "Admin"
+ * demo account on the login page. Not a customer; has no workspace wallet.
+ */
+export const adminAccount: CurrentUser = {
+  id: "usr_staff_jonas",
+  name: "Jonas Weber",
+  email: "jonas@commerce360.ai",
+  title: "Platform Operations",
+  initials: "JW",
+  role: "owner",
+  appRole: "admin",
+};
+
+/** Commerce360 staff with admin-console access, managed in Admin → Settings. */
+export const adminStaff: TeamMember[] = [
+  {
+    id: "staff_01",
+    name: "Jonas Weber",
+    email: "jonas@commerce360.ai",
+    role: "owner",
+    initials: "JW",
+    status: "active",
+    joinedAt: "2026-01-12T09:00:00Z",
+  },
+  {
+    id: "staff_02",
+    name: "Elena Fischer",
+    email: "elena@commerce360.ai",
+    role: "admin",
+    initials: "EF",
+    status: "active",
+    joinedAt: "2026-02-03T10:30:00Z",
+  },
+  {
+    id: "staff_03",
+    name: "Tomas Lindgren",
+    email: "tomas@commerce360.ai",
+    role: "member",
+    initials: "TL",
+    status: "invited",
+    joinedAt: null,
+  },
+];
 
 export const teamMembers: TeamMember[] = [
   {

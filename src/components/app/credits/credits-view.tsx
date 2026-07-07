@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils";
 import type {
   CreditEntry,
   CreditEntryType,
-  CreditPlan,
+  CreditPack,
   Workspace,
 } from "@/lib/types";
 
@@ -46,11 +46,11 @@ const ENTRY_META: Record<CreditEntryType, { icon: LucideIcon; color: string }> =
 export function CreditsView({
   workspace,
   ledger,
-  plans,
+  packs,
 }: {
   workspace: Workspace;
   ledger: CreditEntry[];
-  plans: CreditPlan[];
+  packs: CreditPack[];
 }) {
   const sim = useSimulation();
   // Wallet totals stay live as the demo user renders and buys credits.
@@ -83,7 +83,7 @@ export function CreditsView({
                 </div>
               </dl>
               <div className="mt-4 flex justify-end">
-                <BuyCreditsDialog plans={plans} />
+                <BuyCreditsDialog packs={packs} />
               </div>
             </div>
           </CardContent>

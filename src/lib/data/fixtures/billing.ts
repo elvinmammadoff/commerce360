@@ -1,10 +1,10 @@
-import type { CreditPlan, PaymentMethod, Purchase } from "@/lib/types";
+import type { CreditPack, PaymentMethod, Purchase } from "@/lib/types";
 
 /**
- * Public, one-time credit purchase plans. Credits never expire and there is no
- * subscription — each plan is a single Stripe checkout.
+ * Public, one-time credit packs. Credits never expire and there is no
+ * subscription — each pack is a single Stripe checkout.
  */
-export const creditPlans: CreditPlan[] = [
+export const creditPacks: CreditPack[] = [
   {
     id: "starter",
     name: "Starter",
