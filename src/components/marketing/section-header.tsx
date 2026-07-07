@@ -8,9 +8,10 @@ import { cn } from "@/lib/utils";
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 /**
- * Restrained editorial eyebrow — a quiet uppercase label with a short brand
- * rule instead of the generic centered blue text. Used across every marketing
- * section so the rhythm stays consistent without looking templated.
+ * Editorial section label — a blue→violet gradient word flanked by thin glowing
+ * gradient rules on both sides. Shared across every marketing section so the
+ * rhythm reads as one premium visual language. `centered` is accepted for API
+ * symmetry; both alignments render the same flanked treatment.
  */
 export function Eyebrow({
   children,
@@ -18,14 +19,26 @@ export function Eyebrow({
 }: {
   children: React.ReactNode;
   className?: string;
+  centered?: boolean;
 }) {
   return (
-    <span className={cn("eyebrow", className)}>
+    <span
+      className={cn(
+        "inline-flex items-center gap-3 drop-shadow-[0_0_10px_rgba(124,108,255,0.35)]",
+        className,
+      )}
+    >
       <span
         aria-hidden="true"
-        className="h-px w-5 bg-gradient-to-r from-brand/70 to-transparent"
+        className="h-px w-8 bg-gradient-to-r from-transparent via-brand/40 to-brand/70"
       />
-      {children}
+      <span className="bg-gradient-to-r from-brand to-[#a855f7] bg-clip-text text-xs font-semibold tracking-[0.14em] text-transparent uppercase">
+        {children}
+      </span>
+      <span
+        aria-hidden="true"
+        className="h-px w-8 bg-gradient-to-l from-transparent via-[#a855f7]/40 to-[#a855f7]/70"
+      />
     </span>
   );
 }
@@ -64,14 +77,15 @@ export function SectionHeader({
       )}
     >
       <motion.div {...item} transition={{ duration: 0.4, ease: EASE }}>
-        <Eyebrow>{eyebrow}</Eyebrow>
+        <Eyebrow centered={align === "center"}>{eyebrow}</Eyebrow>
       </motion.div>
 
       <motion.h2
         {...item}
         transition={{ duration: 0.5, delay: 0.06, ease: EASE }}
-        className={cn(
-          "text-display-sm mt-4 text-balance text-foreground",
+        className={"text-display-sm " + cn(
+          "mt-5 text-balance",
+          "bg-gradient-to-b from-white via-white/95 to-white/70 bg-clip-text text-transparent",
           titleClassName,
         )}
       >
@@ -83,7 +97,7 @@ export function SectionHeader({
           {...item}
           transition={{ duration: 0.5, delay: 0.12, ease: EASE }}
           className={cn(
-            "mt-4 text-base leading-relaxed text-pretty text-muted-foreground",
+            "mt-6 text-lg leading-8 text-pretty text-muted-foreground/70",
             align === "center" && "max-w-xl",
           )}
         >

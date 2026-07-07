@@ -5,6 +5,7 @@ import { FinalCta } from "@/components/marketing/final-cta";
 import { Hero } from "@/components/marketing/hero";
 import { HowItWorks } from "@/components/marketing/how-it-works";
 import { Logos } from "@/components/marketing/logos";
+import { ProductPipeline } from "@/components/marketing/product-pipeline";
 import { PricingSection } from "@/components/marketing/pricing-section";
 import { Testimonials } from "@/components/marketing/testimonials";
 import { getFaqs, getPlans, getTestimonials } from "@/lib/data";
@@ -20,6 +21,7 @@ export default async function LandingPage() {
     <>
       <Hero />
       <Logos />
+      <ProductPipeline />
       <HowItWorks />
       <Features />
       <Demo />

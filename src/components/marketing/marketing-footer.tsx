@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Logo } from "@/components/shared/logo";
+import { Reveal } from "@/components/marketing/reveal";
 
 const FOOTER_COLUMNS = [
   {
@@ -43,8 +44,9 @@ const FOOTER_COLUMNS = [
 
 export function MarketingFooter() {
   return (
-    <footer className="border-t border-border bg-[#070707]">
-      <div className="container-page py-14">
+    <footer className="relative bg-white/[0.015]">
+      <div aria-hidden="true" className="divider-glow absolute inset-x-0 top-0" />
+      <Reveal className="container-page py-14">
         <div className="grid gap-10 lg:grid-cols-6">
           <div className="space-y-4 lg:col-span-2">
             <Logo />
@@ -82,7 +84,7 @@ export function MarketingFooter() {
           <p>© 2026 Commerce360 AI, Inc. All rights reserved.</p>
           <p>Built for teams that ship catalogs, not photoshoots.</p>
         </div>
-      </div>
+      </Reveal>
     </footer>
   );
 }

@@ -2,7 +2,10 @@
 
 import { motion, useReducedMotion } from "motion/react";
 
+import { GradientBorder } from "@/components/marketing/gradient-border";
+import { SectionGlow } from "@/components/marketing/section-glow";
 import { SectionHeader } from "@/components/marketing/section-header";
+import { Spotlight } from "@/components/marketing/spotlight";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import type { Testimonial } from "@/lib/types";
@@ -28,13 +31,19 @@ function Quote({
             whileInView: { opacity: 1, y: 0 },
             viewport: { once: true, margin: "-60px" },
             transition: { duration: 0.5, delay: index * 0.06, ease: EASE },
+            whileHover: {
+              y: -4,
+              transition: { duration: 0.25, ease: [0.25, 1, 0.5, 1] },
+            },
           })}
       className={cn(
-        "group relative flex h-full flex-col justify-between gap-6 overflow-hidden rounded-2xl bg-card p-6 ring-1 ring-foreground/10",
-        "shadow-[inset_0_1px_0_0_color-mix(in_oklch,white_4%,transparent)] transition-[box-shadow,--tw-ring-color] duration-300 hover:ring-brand/25 hover:elevate-md",
+        "group relative isolate flex h-full flex-col justify-between gap-6 overflow-hidden rounded-2xl bg-card p-6 ring-1 ring-foreground/10",
+        "shadow-[inset_0_1px_0_0_color-mix(in_oklch,white_4%,transparent)] transition-[box-shadow,--tw-ring-color] duration-300 hover:ring-brand/30 hover:elevate-lg",
         featured && "sm:col-span-2 sm:p-8",
       )}
     >
+      <Spotlight className="opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      <GradientBorder className="opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
       {/* Oversized quotation glyph — quiet, sits behind the copy */}
       <span
         aria-hidden="true"
@@ -75,8 +84,10 @@ export function Testimonials({ items }: { items: Testimonial[] }) {
   return (
     <section
       id="testimonials"
-      className="scroll-mt-24 border-t border-border bg-[#070707] py-24 sm:py-28"
+      className="relative scroll-mt-24 py-24 sm:py-28"
     >
+      <div aria-hidden="true" className="divider-glow absolute inset-x-0 top-0" />
+      <SectionGlow placement="left" tone="blue" size="40rem" intensity={0.08} drift />
       <div className="container-page">
         <SectionHeader
           eyebrow="Customers"

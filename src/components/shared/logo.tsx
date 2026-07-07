@@ -10,23 +10,32 @@ function OrbitMark({ className }: { className?: string }) {
       aria-hidden="true"
       className={cn("size-7", className)}
     >
+      <defs>
+        <linearGradient
+          id="c360-mark"
+          x1="4"
+          y1="4"
+          x2="24"
+          y2="24"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="#5B8CFF" />
+          <stop offset="1" stopColor="#a855f7" />
+        </linearGradient>
+      </defs>
+      {/* Gradient "C" ring with a gap top-right */}
       <circle
         cx="14"
         cy="14"
-        r="6"
-        className="stroke-foreground"
-        strokeWidth="1.75"
+        r="8.5"
+        fill="none"
+        stroke="url(#c360-mark)"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeDasharray="44 12"
+        transform="rotate(-52 14 14)"
       />
-      <ellipse
-        cx="14"
-        cy="14"
-        rx="11.5"
-        ry="4.5"
-        className="stroke-muted-foreground/50"
-        strokeWidth="1"
-        transform="rotate(-18 14 14)"
-      />
-      <circle cx="24.4" cy="10.4" r="2.4" className="fill-brand" />
+      <circle cx="22" cy="7" r="2.5" fill="url(#c360-mark)" />
     </svg>
   );
 }
@@ -53,7 +62,9 @@ export function Logo({
       {wordmark && (
         <span className="text-[15px] font-semibold tracking-tight text-foreground">
           Commerce
-          <span className="text-brand">360</span>
+          <span className="bg-linear-to-r from-[#5B8CFF] to-[#a855f7] bg-clip-text text-transparent">
+            360
+          </span>
         </span>
       )}
     </Link>

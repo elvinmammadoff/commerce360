@@ -282,14 +282,210 @@
 /* Fluid display type — clamps between mobile and desktop so headings keep a
    premium optical size without a cascade of breakpoint overrides. */
 @utility text-display {
-  font-size: clamp(2.25rem, 1.4rem + 3.4vw, 3.75rem);
-  line-height: 1.02;
-  letter-spacing: -0.033em;
+  font-size: clamp(2.625rem, 1.5rem + 4.5vw, 4.5rem);
+  line-height: 1.0;
+  letter-spacing: -0.035em;
   font-weight: 600;
 }
 @utility text-display-sm {
-  font-size: clamp(1.875rem, 1.4rem + 1.9vw, 2.75rem);
-  line-height: 1.08;
-  letter-spacing: -0.028em;
+  font-size: clamp(2.25rem, 1.55rem + 2.8vw, 3.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
   font-weight: 600;
+}
+
+/* ============================================================
+ * Premium atmosphere — layered lighting, grain, and motion.
+ * Everything here is GPU-cheap (transform/opacity only) and every
+ * animation utility disables itself under prefers-reduced-motion.
+ * The palette stays locked to brand-blue + a faint violet; no glass,
+ * no rainbow — depth comes from light, not colour.
+ * ============================================================ */
+
+/* Sensor grain — a barely-there fractal-noise tile that kills the banding
+   large dark radial gradients always produce. This is the single detail that
+   separates "flat CSS gradient" from "lit photographic surface". */
+@utility bg-noise {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Abstract "wave" streaks — soft diagonal light bands for section backdrops,
+   echoing the flowing texture in the reference. Two overlaid repeating linear
+   gradients at slightly different angles/periods break up the regularity so it
+   reads as drifting light, not stripes. Always pair with a heavy blur + a
+   radial mask + very low opacity so it stays a whisper behind the content. */
+@utility bg-streaks {
+  background-image:
+    repeating-linear-gradient(
+      -38deg,
+      color-mix(in oklch, var(--brand) 6%, transparent) 0 1.5px,
+      transparent 1.5px 30px
+    ),
+    repeating-linear-gradient(
+      -33deg,
+      color-mix(in oklch, #a78bfa 5%, transparent) 0 1px,
+      transparent 1px 52px
+    );
+}
+
+/* Full-bleed fading hairline — the premium section seam. Replaces hard
+   `border-t` lines so section boundaries read as light, not ink. */
+@utility divider-glow {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in oklch, white 9%, transparent) 18%,
+    color-mix(in oklch, white 9%, transparent) 82%,
+    transparent
+  );
+}
+
+/* Cursor-tracked spotlight overlay for premium cards. Sits *behind* the card
+   content (the card must be `isolate` so the -1 layer stays contained), so
+   text stays perfectly crisp while a soft brand light follows the pointer.
+   The card sets --spot-x / --spot-y on pointermove; defaults keep it centred. */
+@utility spotlight-layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s var(--ease-out-quart);
+  background: radial-gradient(
+    280px circle at var(--spot-x, 50%) var(--spot-y, 0%),
+    color-mix(in oklch, var(--brand) 15%, transparent),
+    transparent 60%
+  );
+}
+
+/* Modern gradient-hairline border. A 1px conic/linear ring masked to the edge
+   only — the "machined bezel" look without a heavy visible border. */
+@utility gradient-ring {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      145deg,
+      color-mix(in oklch, white 16%, transparent),
+      transparent 40%,
+      transparent 60%,
+      color-mix(in oklch, var(--brand) 30%, transparent)
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+}
+
+/* CTA glow — a broader, warmer version of glow-brand for showpiece surfaces. */
+@utility glow-cta {
+  box-shadow:
+    inset 0 1px 0 0 color-mix(in oklch, white 10%, transparent),
+    0 0 0 1px color-mix(in oklch, var(--brand) 30%, transparent),
+    0 20px 70px -24px color-mix(in oklch, var(--brand) 55%, transparent);
+}
+
+/* Subtle vertical sheen on display headings — white catching light at the top,
+   settling a touch cooler at the baseline. Applied only to light text runs. */
+@utility text-sheen {
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    color-mix(in oklch, #ffffff 74%, var(--muted-foreground)) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Slow-drifting aurora glow for hero/CTA backdrops. */
+@keyframes aurora-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translate3d(2.5%, -2%, 0) scale(1.12);
+    opacity: 1;
+  }
+}
+@utility aurora {
+  animation: aurora-drift 20s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+@utility aurora-slow {
+  animation: aurora-drift 28s ease-in-out infinite;
+  animation-delay: -6s;
+  will-change: transform, opacity;
+}
+
+/* Gentle vertical float for background orbs / accents. */
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-16px);
+  }
+}
+@utility float-slow {
+  animation: float-y 9s ease-in-out infinite;
+  will-change: transform;
+}
+@utility float-slower {
+  animation: float-y 13s ease-in-out infinite;
+  animation-delay: -3s;
+  will-change: transform;
+}
+
+/* Sheen sweep — a light bar that travels once across a surface (buttons, chips). */
+@keyframes sheen-sweep {
+  100% {
+    transform: translateX(220%);
+  }
+}
+
+/* Continuous logo marquee. */
+@keyframes marquee-x {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@utility marquee {
+  animation: marquee-x 42s linear infinite;
+  will-change: transform;
+}
+
+/* Flowing gradient border (badges/pills) — shifts a repeating gradient. */
+@keyframes gradient-x {
+  to {
+    background-position: 300% 0;
+  }
+}
+@utility animate-gradient-x {
+  animation: gradient-x 6s linear infinite;
+}
+
+/* Honour reduced-motion for every ambient animation defined above. */
+@media (prefers-reduced-motion: reduce) {
+  .aurora,
+  .aurora-slow,
+  .float-slow,
+  .float-slower,
+  .marquee,
+  .animate-gradient-x {
+    animation: none !important;
+  }
 }

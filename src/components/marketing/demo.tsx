@@ -4,6 +4,7 @@ import * as React from "react";
 import { ArrowRight, ChevronLeft, ChevronRight, ImageIcon } from "lucide-react";
 
 import { Reveal } from "@/components/marketing/reveal";
+import { SectionGlow } from "@/components/marketing/section-glow";
 import { SectionHeader } from "@/components/marketing/section-header";
 import { TurntableViewer } from "@/components/app/viewer/turntable-viewer";
 import { Badge } from "@/components/ui/badge";
@@ -186,7 +187,8 @@ function FramesStrip() {
 
 export function Demo() {
   return (
-    <section id="demo" className="scroll-mt-24 py-24 sm:py-28">
+    <section id="demo" className="relative scroll-mt-24 py-24 sm:py-28">
+      <SectionGlow placement="top-right" tone="indigo" size="40rem" intensity={0.09} />
       <div className="container-page">
         <SectionHeader
           eyebrow="Live demo"

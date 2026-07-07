@@ -1,3 +1,4 @@
+import { Atmosphere } from "@/components/marketing/atmosphere";
 import { MarketingFooter } from "@/components/marketing/marketing-footer";
 import { MarketingNavbar } from "@/components/marketing/marketing-navbar";
 
@@ -14,8 +15,11 @@ export default function MarketingLayout({
       >
         Skip to content
       </a>
+      <Atmosphere />
       <MarketingNavbar />
-      <main id="content">{children}</main>
+      <main id="content" className="relative overflow-x-clip">
+        {children}
+      </main>
       <MarketingFooter />
     </>
   );
