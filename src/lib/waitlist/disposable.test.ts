@@ -8,6 +8,11 @@ describe("isDisposableDomain", () => {
     expect(isDisposableDomain("MAILINATOR.COM")).toBe(true);
   });
 
+  it("flags supplemental temp-mail domains not in the package", () => {
+    expect(isDisposableDomain("ezimb.com")).toBe(true);
+    expect(isDisposableDomain("EZIMB.COM")).toBe(true);
+  });
+
   it("allows real providers", () => {
     expect(isDisposableDomain("gmail.com")).toBe(false);
     expect(isDisposableDomain("company.com")).toBe(false);

@@ -47,10 +47,10 @@ describe("submitWaitlist", () => {
     expect(insert).not.toHaveBeenCalled();
   });
 
-  it("treats duplicate inserts (23505) as silent success", async () => {
+  it("returns the duplicate message when the email already exists (23505)", async () => {
     insert.mockResolvedValue({ error: { code: "23505", message: "dup" } });
     const res = await submitWaitlist({ ...base, email: "you@company.com" });
-    expect(res.error).toBeNull();
+    expect(res.error).toBe(WAITLIST_MESSAGES.duplicate);
   });
 
   it("succeeds for a valid email and inserts the normalized address", async () => {

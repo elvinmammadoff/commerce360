@@ -4,6 +4,8 @@
  */
 export const WAITLIST_MESSAGES = {
   invalidSyntax: "Enter a valid email address.",
+  duplicate:
+    "You're already on the waitlist. We'll notify you when Commerce360 AI launches.",
   disposable: "Temporary or disposable email addresses aren't allowed.",
   mxUnverifiable:
     "We couldn't verify that email domain. Please use a different address.",
