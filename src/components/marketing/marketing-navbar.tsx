@@ -92,17 +92,15 @@ export function MarketingNavbar() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
-          <Button asChild variant="ghost" size="sm">
+          {/* <Button asChild variant="ghost" size="sm">
             <Link href="/login">Sign in</Link>
-          </Button>
+          </Button> */}
           <Button
-            asChild
             size="sm"
             className="border-transparent bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] text-white shadow-[0_6px_20px_-6px_rgba(124,92,246,0.65)] hover:text-white hover:shadow-[0_8px_26px_-6px_rgba(124,92,246,0.85)]"
+            onClick={() => document.getElementById("waitlist")?.scrollIntoView({ behavior: "smooth" })}
           >
-            <Link href="/signup">
-              Start free <ArrowRight aria-hidden="true" />
-            </Link>
+            Join waitlist <ArrowRight aria-hidden="true" />
           </Button>
         </div>
 
@@ -136,18 +134,19 @@ export function MarketingNavbar() {
               ))}
             </nav>
             <div className="mt-auto flex flex-col gap-2 p-4">
-              <Button asChild variant="outline">
+              {/* <Button asChild variant="outline">
                 <Link href="/login" onClick={() => setOpen(false)}>
                   Sign in
                 </Link>
-              </Button>
+              </Button> */}
               <Button
-                asChild
                 className="border-transparent bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] text-white hover:text-white"
+                onClick={() => {
+                  setOpen(false);
+                  document.getElementById("waitlist")?.scrollIntoView({ behavior: "smooth" });
+                }}
               >
-                <Link href="/signup" onClick={() => setOpen(false)}>
-                  Start free
-                </Link>
+                Join waitlist
               </Button>
             </div>
           </SheetContent>

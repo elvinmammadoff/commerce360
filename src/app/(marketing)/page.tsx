@@ -7,25 +7,30 @@ import { HowItWorks } from "@/components/marketing/how-it-works";
 import { Logos } from "@/components/marketing/logos";
 import { ProductPipeline } from "@/components/marketing/product-pipeline";
 import { PricingSection } from "@/components/marketing/pricing-section";
-import { Testimonials } from "@/components/marketing/testimonials";
-import { getCreditPacks, getFaqs, getTestimonials } from "@/lib/data";
+// Testimonials temporarily disabled until we have real customer quotes.
+// Re-enable: uncomment the import, the getTestimonials() fetch, and the
+// <Testimonials /> render below.
+// import { Testimonials } from "@/components/marketing/testimonials";
+import { Waitlist } from "@/components/marketing/waitlist";
+import { getCreditPacks, getFaqs } from "@/lib/data";
 
 export default async function LandingPage() {
-  const [packs, testimonials, faqs] = await Promise.all([
+  const [packs, faqs] = await Promise.all([
     getCreditPacks(),
-    getTestimonials(),
     getFaqs(),
   ]);
 
   return (
     <>
       <Hero />
+      <Waitlist />
       <Logos />
       <ProductPipeline />
       <HowItWorks />
       <Features />
       <Demo />
-      <Testimonials items={testimonials} />
+      {/* Testimonials temporarily disabled — restore once real quotes exist. */}
+      {/* <Testimonials items={testimonials} /> */}
       <PricingSection packs={packs} />
       <FaqSection items={faqs} />
       <FinalCta />
