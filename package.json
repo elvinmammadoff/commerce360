@@ -7,13 +7,16 @@
     "build": "next build --turbopack",
     "start": "next start",
     "prestart": "rm -rf .next && next build --turbopack",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.109.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
+    "disposable-email-domains": "^1.0.62",
     "lucide-react": "^1.23.0",
     "motion": "^12.42.2",
     "next": "15.5.20",
@@ -37,6 +40,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.20",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.10"
   }
 }

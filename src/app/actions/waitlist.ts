@@ -1,21 +1,28 @@
 "use server";
 
-import { getSupabaseClient } from "@/lib/supabase";
+// Requires the Node.js runtime for DNS MX resolution (node:dns). Runtime is
+// inherited from the calling route segment, which is pinned in
+// src/app/(marketing)/page.tsx via `export const runtime = "nodejs"`.
 
-export async function joinWaitlist(email: string): Promise<{ error: string | null }> {
-  const supabase = getSupabaseClient();
+import { headers } from "next/headers";
 
-  const { error } = await supabase
-    .from("waitlist")
-    .insert({ email, source: "marketing_page" });
+import { submitWaitlist } from "@/lib/waitlist";
 
-  if (error) {
-    if (error.code === "23505") {
-      return { error: null };
-    }
-    console.error("Waitlist insert error:", error.message);
-    return { error: "Something went wrong. Please try again." };
+function getClientIp(headerList: Headers): string {
+  const forwarded = headerList.get("x-forwarded-for");
+  if (forwarded) {
+    const first = forwarded.split(",")[0]?.trim();
+    if (first) return first;
   }
+  return headerList.get("x-real-ip")?.trim() || "unknown";
+}
 
-  return { error: null };
+export async function joinWaitlist(
+  email: string,
+  honeypot: string = "",
+): Promise<{ error: string | null }> {
+  const headerList = await headers();
+  const ip = getClientIp(headerList);
+
+  return submitWaitlist({ email, honeypot, ip });
 }

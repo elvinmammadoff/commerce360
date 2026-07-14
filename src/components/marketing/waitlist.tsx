@@ -20,6 +20,8 @@ type Status = "idle" | "loading" | "success";
 export function Waitlist() {
   const reduceMotion = useReducedMotion();
   const [email, setEmail] = React.useState("");
+  // Honeypot: real users never fill this; bots that auto-fill every field do.
+  const [company, setCompany] = React.useState("");
   const [status, setStatus] = React.useState<Status>("idle");
   const [modalOpen, setModalOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -48,7 +50,7 @@ export function Waitlist() {
 
     setError(null);
     setStatus("loading");
-    joinWaitlist(value).then(({ error: serverError }) => {
+    joinWaitlist(value, company).then(({ error: serverError }) => {
       if (serverError) {
         setError(serverError);
         setStatus("idle");
@@ -117,6 +119,25 @@ export function Waitlist() {
 
             <motion.div {...enter(0.26)} className="mx-auto mt-9 max-w-lg">
               <form onSubmit={onSubmit} noValidate>
+                {/* Honeypot: hidden from users, tabbing and screen readers.
+                    Bots that fill every field trip it and get a fake success. */}
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -left-[9999px] size-px overflow-hidden opacity-0"
+                >
+                  <label htmlFor="waitlist-company">
+                    Company (leave this field empty)
+                  </label>
+                  <input
+                    id="waitlist-company"
+                    type="text"
+                    name="company"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                  />
+                </div>
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <div className="relative flex-1">
                     <Mail

@@ -14,6 +14,10 @@ import { PricingSection } from "@/components/marketing/pricing-section";
 import { Waitlist } from "@/components/marketing/waitlist";
 import { getCreditPacks, getFaqs } from "@/lib/data";
 
+// Pin the Node.js runtime so the waitlist server action can use node:dns for
+// MX resolution (unavailable on the Edge runtime).
+export const runtime = "nodejs";
+
 export default async function LandingPage() {
   const [packs, faqs] = await Promise.all([
     getCreditPacks(),
