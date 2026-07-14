@@ -1,15 +1,16 @@
 "use server";
 
-import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 
 export async function joinWaitlist(email: string): Promise<{ error: string | null }> {
+  const supabase = getSupabaseClient();
+
   const { error } = await supabase
     .from("waitlist")
     .insert({ email, source: "marketing_page" });
 
   if (error) {
     if (error.code === "23505") {
-      // Unique constraint — already signed up, treat as success
       return { error: null };
     }
     console.error("Waitlist insert error:", error.message);
