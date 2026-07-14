@@ -50,15 +50,20 @@ export function Waitlist() {
 
     setError(null);
     setStatus("loading");
-    joinWaitlist(value, company).then(({ error: serverError }) => {
-      if (serverError) {
-        setError(serverError);
+    joinWaitlist(value, company)
+      .then(({ error: serverError }) => {
+        if (serverError) {
+          setError(serverError);
+          setStatus("idle");
+        } else {
+          setStatus("success");
+          setModalOpen(true);
+        }
+      })
+      .catch(() => {
+        setError("Something went wrong. Please try again.");
         setStatus("idle");
-      } else {
-        setStatus("success");
-        setModalOpen(true);
-      }
-    });
+      });
   };
 
   return (

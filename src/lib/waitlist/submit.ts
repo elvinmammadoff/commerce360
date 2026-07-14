@@ -60,16 +60,21 @@ export async function submitWaitlist({
   // 7. Insert. The unique constraint is the single source of truth for
   //    duplicates — no pre-query — and a duplicate is treated as success so
   //    existing emails cannot be enumerated.
-  const supabase = getSupabaseClient();
-  const { error } = await supabase
-    .from("waitlist")
-    .insert({ email: normalized, source: "marketing_page" });
+  try {
+    const supabase = getSupabaseClient();
+    const { error } = await supabase
+      .from("waitlist")
+      .insert({ email: normalized, source: "marketing_page" });
 
-  if (error) {
-    if (error.code === "23505") {
-      return { error: null };
+    if (error) {
+      if (error.code === "23505") {
+        return { error: null };
+      }
+      console.error("Waitlist insert error:", error.message);
+      return { error: WAITLIST_MESSAGES.generic };
     }
-    console.error("Waitlist insert error:", error.message);
+  } catch (err) {
+    console.error("Waitlist insert threw:", err);
     return { error: WAITLIST_MESSAGES.generic };
   }
 
