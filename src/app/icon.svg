@@ -1,0 +1,23 @@
+<svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="32" height="32" rx="7" fill="#050505"/>
+  <defs>
+    <linearGradient id="g" x1="5" y1="5" x2="27" y2="27" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5B8CFF"/>
+      <stop offset="1" stop-color="#a855f7"/>
+    </linearGradient>
+  </defs>
+  <!-- Orbit C ring with gap top-right -->
+  <circle
+    cx="16"
+    cy="16"
+    r="9.5"
+    fill="none"
+    stroke="url(#g)"
+    stroke-width="2.8"
+    stroke-linecap="round"
+    stroke-dasharray="49 13"
+    transform="rotate(-52 16 16)"
+  />
+  <!-- Dot at gap (top-right) -->
+  <circle cx="24.5" cy="8" r="2.8" fill="url(#g)"/>
+</svg>
