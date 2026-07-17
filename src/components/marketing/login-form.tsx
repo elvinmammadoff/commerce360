@@ -9,16 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { signInAs } from "@/lib/auth-actions";
+import { loginAction } from "@/lib/auth-actions";
 import type { AppRole } from "@/lib/types";
 
 type AuthMode = "login" | "signup";
-
-/** Placeholder email per role — purely cosmetic for the demo. */
-const DEMO_EMAIL: Record<AppRole, string> = {
-  customer: "maya@fernhaven.com",
-  admin: "jonas@commerce360.ai",
-};
 
 function GoogleMark() {
   return (
@@ -49,37 +43,17 @@ export function LoginForm({
   next,
 }: {
   mode?: AuthMode;
-  /**
-   * Role granted on sign-in. The public pages always use "customer"; the
-   * internal /admin/login page passes "admin". Signup is always a customer.
-   */
   role?: AppRole;
-  /** Return path after auth — set by the middleware for guarded deep links. */
   next?: string;
 }) {
   const isSignup = mode === "signup";
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [pending, setPending] = React.useState<"email" | "sso" | null>(null);
-  const [, startTransition] = React.useTransition();
-
-  // Signup always creates a customer workspace; admin access is staff-only.
   const activeRole = isSignup ? "customer" : role;
-  const demoEmail = DEMO_EMAIL[activeRole];
 
-  const submit = (method: "email" | "sso") => {
-    if (pending) return;
-    if (method === "email" && !/^\S+@\S+\.\S+$/.test(email)) {
-      toast.error("Enter a valid email address");
-      return;
-    }
-    setPending(method);
-    // Small delay reads as a real auth round-trip; the server action then
-    // sets the role cookie and redirects to the right home.
-    window.setTimeout(() => {
-      startTransition(() => signInAs(activeRole, next));
-    }, 900);
-  };
+  const [error, formAction, isPending] = React.useActionState(loginAction, null);
+
+  React.useEffect(() => {
+    if (error) toast.error(error);
+  }, [error]);
 
   return (
     <div className="space-y-5">
@@ -87,14 +61,10 @@ export function LoginForm({
         type="button"
         variant="outline"
         className="w-full"
-        onClick={() => submit("sso")}
-        disabled={pending !== null}
+        disabled={isPending}
+        onClick={() => toast.info("Google SSO coming soon")}
       >
-        {pending === "sso" ? (
-          <Loader2 className="animate-spin" aria-hidden="true" />
-        ) : (
-          <GoogleMark />
-        )}
+        <GoogleMark />
         Continue with Google
       </Button>
 
@@ -104,22 +74,19 @@ export function LoginForm({
         <Separator className="flex-1" />
       </div>
 
-      <form
-        className="space-y-4"
-        onSubmit={(e) => {
-          e.preventDefault();
-          submit("email");
-        }}
-      >
+      <form className="space-y-4" action={formAction}>
+        <input type="hidden" name="role" value={activeRole} />
+        {next && <input type="hidden" name="next" value={next} />}
+
         <div className="space-y-2">
           <Label htmlFor="email">Work email</Label>
           <Input
             id="email"
+            name="email"
             type="email"
             autoComplete="email"
-            placeholder={demoEmail}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@company.com"
+            required
           />
         </div>
         <div className="space-y-2">
@@ -131,8 +98,7 @@ export function LoginForm({
                 className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
                 onClick={() =>
                   toast.info("Reset link sent", {
-                    description:
-                      "Check your inbox for the password reset email.",
+                    description: "Check your inbox for the password reset email.",
                   })
                 }
               >
@@ -142,26 +108,25 @@ export function LoginForm({
           </div>
           <Input
             id="password"
+            name="password"
             type="password"
             autoComplete={isSignup ? "new-password" : "current-password"}
             placeholder="••••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            required
           />
         </div>
-        <Button type="submit" className="w-full" disabled={pending !== null}>
-          {pending === "email" && (
-            <Loader2 className="animate-spin" aria-hidden="true" />
-          )}
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending && <Loader2 className="animate-spin" aria-hidden="true" />}
           {isSignup
-            ? pending === "email"
+            ? isPending
               ? "Creating account…"
               : "Create account"
-            : pending === "email"
+            : isPending
               ? "Signing in…"
               : role === "admin"
                 ? "Sign in to admin"
-                : "Sign in"}        </Button>
+                : "Sign in"}
+        </Button>
       </form>
 
       {role === "admin" ? (
@@ -199,14 +164,6 @@ export function LoginForm({
           )}
         </p>
       )}
-
-      <p className="text-center text-xs text-muted-foreground">
-        {role === "admin"
-          ? "Internal access only. Any email opens the ops console."
-          : isSignup
-            ? "Exploring the demo? Any email opens the Fernhaven Home workspace."
-            : "Exploring the demo? Any email works."}
-      </p>
     </div>
   );
 }

@@ -2,37 +2,87 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 import { ROLE_COOKIE } from "@/lib/auth-constants";
 import type { AppRole } from "@/lib/types";
 
-/** Only follow same-origin paths — never protocol-relative or absolute URLs. */
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "https://api.orbittify.com";
+const TOKEN_COOKIE = "c360-token";
+
 function safePath(next: string | undefined): string | null {
   return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
 }
 
-/**
- * Demo sign-in: any credentials work, the chosen account type decides the
- * role. The role lives in an httpOnly cookie so the middleware and server
- * guards can enforce it on every request.
- */
-export async function signInAs(role: AppRole, next?: string) {
-  const store = await cookies();
-  store.set(ROLE_COOKIE, role, {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 30,
+export async function signIn(
+  email: string,
+  password: string,
+  role: AppRole = "customer",
+  next?: string
+): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ email, password }),
   });
 
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error((data as { message?: string }).message ?? "Invalid credentials");
+  }
+
+  const { token, user } = (await res.json()) as {
+    token: string;
+    user: { role?: string };
+  };
+
+  const resolvedRole: AppRole = user.role === "admin" ? "admin" : "customer";
+  const cookieOpts = {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30,
+  };
+
+  const store = await cookies();
+  store.set(TOKEN_COOKIE, token, cookieOpts);
+  store.set(ROLE_COOKIE, resolvedRole, cookieOpts);
+
   const target = safePath(next);
-  if (role === "admin") redirect(target ?? "/admin");
-  // Customers never land on admin routes, even from a stale ?next=.
+  if (resolvedRole === "admin") redirect(target ?? "/admin");
   redirect(target && !target.startsWith("/admin") ? target : "/dashboard");
 }
 
-export async function signOut() {
+export async function loginAction(
+  _prev: string | null,
+  formData: FormData
+): Promise<string | null> {
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+  const role = ((formData.get("role") as string) ?? "customer") as AppRole;
+  const next = (formData.get("next") as string) || undefined;
+
+  try {
+    await signIn(email, password, role, next);
+  } catch (e) {
+    if (isRedirectError(e)) throw e;
+    return e instanceof Error ? e.message : "Sign in failed";
+  }
+  return null;
+}
+
+export async function signOut(): Promise<void> {
   const store = await cookies();
+  const token = store.get(TOKEN_COOKIE)?.value;
+
+  if (token) {
+    await fetch(`${API_BASE}/api/logout`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+    }).catch(() => {});
+  }
+
+  store.delete(TOKEN_COOKIE);
   store.delete(ROLE_COOKIE);
   redirect("/login");
 }

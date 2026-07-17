@@ -53,10 +53,12 @@ export function StatCards({
   const sim = useSimulation();
 
   const allProducts = [...sim.products, ...products];
-  // Live credit wallet — one-time purchases only, credits never expire.
-  const totalPurchased = workspace.totalPurchased + sim.creditsPurchased;
-  const creditsUsed = workspace.creditsUsed + sim.creditsUsed;
-  const productsRendered = allProducts.filter(
+  // Real wallet stats from DB only — simulation renders are demo-only and
+  // don't affect the persistent credit balance shown here.
+  const creditsBalance = workspace.creditsBalance;
+  const totalPurchased = workspace.totalPurchased;
+  const creditsUsed = workspace.creditsUsed;
+  const productsRendered = products.filter(
     (p) => p.status === "completed",
   ).length;
 
@@ -64,7 +66,7 @@ export function StatCards({
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <StatCard
         label="Current credit balance"
-        value={sim.creditsBalance}
+        value={creditsBalance}
         hint="In your wallet · never expire"
         icon={Coins}
       />

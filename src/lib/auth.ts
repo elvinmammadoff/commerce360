@@ -10,7 +10,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { ROLE_COOKIE } from "@/lib/auth-constants";
-import { getAdminAccount, getCurrentUser } from "@/lib/data";
+import { getCurrentUser } from "@/lib/data";
 import type { AppRole, CurrentUser } from "@/lib/types";
 
 /** Platform role for the current session. Unauthenticated reads as customer. */
@@ -19,11 +19,9 @@ export async function getSessionRole(): Promise<AppRole> {
   return store.get(ROLE_COOKIE)?.value === "admin" ? "admin" : "customer";
 }
 
-/** The signed-in account — staff persona for admins, workspace owner otherwise. */
+/** The signed-in account — reads real user data from the API. */
 export async function getSessionUser(): Promise<CurrentUser> {
-  return (await getSessionRole()) === "admin"
-    ? getAdminAccount()
-    : getCurrentUser();
+  return getCurrentUser();
 }
 
 /**
@@ -33,5 +31,5 @@ export async function getSessionUser(): Promise<CurrentUser> {
  */
 export async function requireAdmin(): Promise<CurrentUser> {
   if ((await getSessionRole()) !== "admin") redirect("/dashboard");
-  return getAdminAccount();
+  return getCurrentUser();
 }

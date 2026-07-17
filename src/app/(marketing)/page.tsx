@@ -11,12 +11,7 @@ import { PricingSection } from "@/components/marketing/pricing-section";
 // Re-enable: uncomment the import, the getTestimonials() fetch, and the
 // <Testimonials /> render below.
 // import { Testimonials } from "@/components/marketing/testimonials";
-import { Waitlist } from "@/components/marketing/waitlist";
 import { getCreditPacks, getFaqs } from "@/lib/data";
-
-// Pin the Node.js runtime so the waitlist server action can use node:dns for
-// MX resolution (unavailable on the Edge runtime).
-export const runtime = "nodejs";
 
 export default async function LandingPage() {
   const [packs, faqs] = await Promise.all([
@@ -27,7 +22,6 @@ export default async function LandingPage() {
   return (
     <>
       <Hero />
-      <Waitlist />
       <Logos />
       <ProductPipeline />
       <HowItWorks />

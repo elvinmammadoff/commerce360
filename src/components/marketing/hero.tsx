@@ -10,6 +10,7 @@ import {
   Timer,
   type LucideIcon,
 } from "lucide-react";
+import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
 
 import { TurntableViewer } from "@/components/app/viewer/turntable-viewer";
@@ -153,7 +154,7 @@ export function Hero() {
               {...enter(0.24)}
               className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"
             >
-              {/* <Button
+              <Button
                 asChild
                 size="lg"
                 className="h-11 border-transparent bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] px-6 text-white shadow-[0_8px_28px_-8px_rgba(124,92,246,0.6)] hover:text-white hover:shadow-[0_10px_34px_-6px_rgba(124,92,246,0.85)]"
@@ -162,14 +163,6 @@ export function Hero() {
                   Start free
                   <ArrowRight aria-hidden="true" />
                 </Link>
-              </Button> */}
-              <Button
-                size="lg"
-                className="h-11 border-transparent bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] px-6 text-white shadow-[0_8px_28px_-8px_rgba(124,92,246,0.6)] hover:text-white hover:shadow-[0_10px_34px_-6px_rgba(124,92,246,0.85)]"
-                onClick={() => document.getElementById("waitlist")?.scrollIntoView({ behavior: "smooth" })}
-              >
-                Join waitlist
-                <ArrowRight aria-hidden="true" />
               </Button>
               <Button
                 asChild
