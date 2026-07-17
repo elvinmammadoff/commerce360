@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "https://api.orbittify.com";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://orbittify.com";
 const TOKEN_COOKIE = "c360-token";
 const ROLE_COOKIE = "c360-role";
 
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const error = searchParams.get("error");
 
-  const failed = NextResponse.redirect(new URL("/login?error=google_failed", request.url));
+  const failed = NextResponse.redirect(`${APP_URL}/login?error=google_failed`);
 
   if (error || !code) return failed;
 
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     const { token, role } = (await res.json()) as { token: string; role: string };
 
-    const response = NextResponse.redirect(new URL("/dashboard", request.url));
+    const response = NextResponse.redirect(`${APP_URL}/dashboard`);
     response.cookies.set(TOKEN_COOKIE, token, COOKIE_OPTS);
     response.cookies.set(ROLE_COOKIE, role === "admin" ? "admin" : "customer", COOKIE_OPTS);
     return response;
