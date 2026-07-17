@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { loginAction } from "@/lib/auth-actions";
+import { loginAction, registerAction } from "@/lib/auth-actions";
 import type { AppRole } from "@/lib/types";
 
 type AuthMode = "login" | "signup";
@@ -49,7 +49,8 @@ export function LoginForm({
   const isSignup = mode === "signup";
   const activeRole = isSignup ? "customer" : role;
 
-  const [error, formAction, isPending] = React.useActionState(loginAction, null);
+  const action = isSignup ? registerAction : loginAction;
+  const [error, formAction, isPending] = React.useActionState(action, null);
 
   React.useEffect(() => {
     if (error) toast.error(error);
@@ -77,6 +78,20 @@ export function LoginForm({
       <form className="space-y-4" action={formAction}>
         <input type="hidden" name="role" value={activeRole} />
         {next && <input type="hidden" name="next" value={next} />}
+
+        {isSignup && (
+          <div className="space-y-2">
+            <Label htmlFor="name">Full name</Label>
+            <Input
+              id="name"
+              name="name"
+              type="text"
+              autoComplete="name"
+              placeholder="Jane Smith"
+              required
+            />
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="email">Work email</Label>

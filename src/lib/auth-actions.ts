@@ -71,6 +71,59 @@ export async function loginAction(
   return null;
 }
 
+export async function register(
+  name: string,
+  email: string,
+  password: string
+): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ name, email, password }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    const errs = (data as { errors?: Record<string, string[]> }).errors;
+    const first = errs ? Object.values(errs)[0]?.[0] : null;
+    throw new Error(first ?? (data as { message?: string }).message ?? "Registration failed");
+  }
+
+  const { token, user } = (await res.json()) as {
+    token: string;
+    user: { role?: string };
+  };
+
+  const cookieOpts = {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30,
+  };
+
+  const store = await cookies();
+  store.set(TOKEN_COOKIE, token, cookieOpts);
+  store.set(ROLE_COOKIE, "customer", cookieOpts);
+  redirect("/dashboard");
+}
+
+export async function registerAction(
+  _prev: string | null,
+  formData: FormData
+): Promise<string | null> {
+  const name = formData.get("name") as string;
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+
+  try {
+    await register(name, email, password);
+  } catch (e) {
+    if (isRedirectError(e)) throw e;
+    return e instanceof Error ? e.message : "Registration failed";
+  }
+  return null;
+}
+
 export async function signOut(): Promise<void> {
   const store = await cookies();
   const token = store.get(TOKEN_COOKIE)?.value;
