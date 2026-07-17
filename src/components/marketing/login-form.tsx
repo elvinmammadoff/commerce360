@@ -63,7 +63,9 @@ export function LoginForm({
         variant="outline"
         className="w-full"
         disabled={isPending}
-        onClick={() => toast.info("Google SSO coming soon")}
+        onClick={() => {
+          window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
+        }}
       >
         <GoogleMark />
         Continue with Google

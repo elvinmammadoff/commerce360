@@ -124,6 +124,28 @@ export async function registerAction(
   return null;
 }
 
+export async function exchangeGoogleCode(code: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/auth/exchange`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ code }),
+  });
+
+  if (!res.ok) throw new Error("Google auth failed");
+
+  const { token, role } = (await res.json()) as { token: string; role: string };
+  const cookieOpts = {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30,
+  };
+
+  const store = await cookies();
+  store.set(TOKEN_COOKIE, token, cookieOpts);
+  store.set(ROLE_COOKIE, (role === "admin" ? "admin" : "customer") as AppRole, cookieOpts);
+}
+
 export async function signOut(): Promise<void> {
   const store = await cookies();
   const token = store.get(TOKEN_COOKIE)?.value;
