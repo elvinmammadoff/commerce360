@@ -5,6 +5,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "noEmit": false,
+    "rootDir": "src",
     "outDir": "dist",
     "incremental": false,
     "plugins": []
