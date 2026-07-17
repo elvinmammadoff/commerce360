@@ -65,11 +65,11 @@ const worker = new Worker<RenderJobData>("render-jobs", processRenderJob, {
   concurrency: 3,
 });
 
-worker.on("completed", (job) => {
+worker.on("completed", (job: { id?: string }) => {
   console.log(`[worker] job ${job.id} completed`);
 });
 
-worker.on("failed", (job, err) => {
+worker.on("failed", (job: { id?: string } | undefined, err: Error) => {
   console.error(`[worker] job ${job?.id} failed:`, err.message);
 });
 
