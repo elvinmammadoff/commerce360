@@ -26,14 +26,21 @@ function authHeader(): string {
 }
 
 async function hfPost(path: string, body: unknown): Promise<HfJob> {
-  const res = await fetch(`${HF_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: authHeader(),
-    },
-    body: JSON.stringify(body),
-  });
+  const url = `${HF_BASE}${path}`;
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: authHeader(),
+      },
+      body: JSON.stringify(body),
+    });
+  } catch (err) {
+    const cause = (err as NodeJS.ErrnoException).cause ?? err;
+    throw new Error(`Higgsfield POST ${path} network error: ${(cause as Error).message ?? cause}`);
+  }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(`Higgsfield POST ${path} → ${res.status}: ${text}`);
@@ -42,11 +49,19 @@ async function hfPost(path: string, body: unknown): Promise<HfJob> {
 }
 
 async function hfGet(path: string): Promise<HfJob> {
-  const res = await fetch(`${HF_BASE}${path}`, {
-    headers: { Authorization: authHeader() },
-  });
+  const url = `${HF_BASE}${path}`;
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: { Authorization: authHeader() },
+    });
+  } catch (err) {
+    const cause = (err as NodeJS.ErrnoException).cause ?? err;
+    throw new Error(`Higgsfield GET ${path} network error: ${(cause as Error).message ?? cause}`);
+  }
   if (!res.ok) {
-    throw new Error(`Higgsfield GET ${path} → ${res.status}`);
+    const text = await res.text().catch(() => "");
+    throw new Error(`Higgsfield GET ${path} → ${res.status}: ${text}`);
   }
   return res.json();
 }
