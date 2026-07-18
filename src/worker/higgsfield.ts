@@ -153,8 +153,10 @@ export async function generateOrbitVideo(
 ): Promise<{ url: string; requestId: string }> {
   const job = await hfPost("/v1/image2video/dop", {
     model: "dop-turbo",
-    prompt,
-    input_images: [{ type: "image_url", image_url: imageUrl }],
+    params: {
+      prompt,
+      input_images: [{ type: "image_url", image_url: imageUrl }],
+    },
   });
   const requestId = job.request_id ?? job.id!;
   const done = await poll(requestId, onProgress, 900_000);
