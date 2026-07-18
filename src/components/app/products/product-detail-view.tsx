@@ -177,7 +177,7 @@ export function ProductDetailView({
           const jobs = (await res.json()) as Array<Record<string, unknown>>;
           const found = jobs.find((j) => j.product_id === productId);
           if (found) {
-            const mapped: GenerationJob = {
+            let mapped: GenerationJob = {
               id: found.id as string,
               productId: found.product_id as string,
               productName: (found.product_name as string) ?? "",
@@ -192,6 +192,10 @@ export function ProductDetailView({
               creditsUsed: (found.credits_used as number) ?? 1,
               error: (found.error as string | undefined) ?? undefined,
             };
+            // If job has an error but backend didn't set status to "failed" yet, treat it as failed.
+            if (mapped.error && mapped.status === "queued") {
+              mapped = { ...mapped, status: "failed" };
+            }
             setPolledJob(mapped);
             if (mapped.status === "completed" || mapped.status === "failed") {
               router.refresh();
@@ -246,7 +250,7 @@ export function ProductDetailView({
         j.productId === productId &&
         (j.status === "running" || j.status === "queued"),
     ) ??
-    (polledJob && (polledJob.status === "running" || polledJob.status === "queued")
+    (polledJob && !polledJob.error && (polledJob.status === "running" || polledJob.status === "queued")
       ? polledJob
       : null) ??
     liveFixtureJobs.find(

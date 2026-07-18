@@ -17,7 +17,7 @@ export async function workerFetch(path: string, options: RequestInit = {}): Prom
 
 export async function patchJob(
   jobId: string,
-  data: { stage?: string; progress?: number; error?: string; completed_at?: string }
+  data: { status?: string; stage?: string; progress?: number; error?: string; completed_at?: string }
 ): Promise<void> {
   const res = await workerFetch(`/api/jobs/${jobId}`, {
     method: "PATCH",

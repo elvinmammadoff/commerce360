@@ -72,7 +72,7 @@ async function processRenderJob(job: Job<RenderJobData>) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error(`[worker] job ${jobId} failed:`, message);
 
-    await patchJob(jobId, { stage: "queued", progress: 0, error: message });
+    await patchJob(jobId, { status: "failed", stage: "failed", progress: 0, error: message });
     await patchProduct(productId, { status: "failed" });
     await refundRenderCredit(workspaceId, jobId);
 
