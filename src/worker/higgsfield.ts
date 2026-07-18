@@ -99,10 +99,23 @@ export async function poll(
  * Returns the Higgsfield media_id for use as a generation reference.
  */
 export async function uploadImageFromUrl(imageUrl: string): Promise<string> {
-  const imgRes = await fetch(imageUrl);
-  if (!imgRes.ok) throw new Error(`Cannot fetch source image: ${imgRes.status}`);
-  const buffer = Buffer.from(await imgRes.arrayBuffer());
-  const contentType = imgRes.headers.get("content-type") ?? "image/jpeg";
+  let buffer: Buffer;
+  let contentType: string;
+
+  // Read from disk to avoid VPS hairpin NAT on self-referential /api/uploads/ URLs
+  try {
+    const { readFile } = await import("fs/promises");
+    const { join } = await import("path");
+    const filename = new URL(imageUrl).pathname.split("/").pop()!;
+    const ext = filename.split(".").pop()?.toLowerCase() ?? "jpeg";
+    contentType = ext === "webp" ? "image/webp" : ext === "png" ? "image/png" : "image/jpeg";
+    buffer = Buffer.from(await readFile(join(process.cwd(), "public", "uploads", filename)));
+  } catch {
+    const imgRes = await fetch(imageUrl);
+    if (!imgRes.ok) throw new Error(`Cannot fetch source image: ${imgRes.status}`);
+    buffer = Buffer.from(await imgRes.arrayBuffer());
+    contentType = imgRes.headers.get("content-type") ?? "image/jpeg";
+  }
 
   const { upload_url, media_id } = (await hfPost("/files/generate-upload-url", {
     content_type: contentType,

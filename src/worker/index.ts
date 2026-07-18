@@ -32,9 +32,12 @@ async function processRenderJob(job: Job<RenderJobData>) {
       (await detectCategory(imageUrl)) ?? job.data.category ?? "general";
     await patchProduct(productId, { category: detected });
 
-    // Stage 1: Normalize — skipped; pass source image directly to render.
+    // Stage 1: Normalize — FLUX Kontext removes background, creates clean studio image
+    await patchJob(jobId, { stage: "normalizing", progress: 5 });
+    const normalizedUrl = await normalizeImage(imageUrl, background, (pct) =>
+      patchJob(jobId, { stage: "normalizing", progress: 5 + Math.round(pct * 0.9) }),
+    );
     await patchJob(jobId, { stage: "normalizing", progress: 100 });
-    const normalizedUrl = imageUrl;
 
     // Stage 2: Render — Higgsfield DoP model generates the 360° orbit video
     await patchJob(jobId, { stage: "rendering", progress: 5 });
