@@ -79,7 +79,9 @@ export function PipelineProgress({ job }: { job: GenerationJob }) {
                   className="mt-2 h-1 overflow-hidden rounded-full bg-muted"
                 >
                   <motion.div
+                    key={stage.id}
                     className="h-full rounded-full bg-brand"
+                    initial={{ width: "0%" }}
                     animate={{ width: `${Math.max(8, Math.min(92, job.progress ?? 8))}%` }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
                   />

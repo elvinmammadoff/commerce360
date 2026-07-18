@@ -62,7 +62,12 @@ async function processRenderJob(job: Job<RenderJobData>) {
     // Stage 5: Package — persist asset URLs and mark product completed
     await patchJob(jobId, { stage: "packaging", progress: 5 });
     await packageAssets({ productId, orbit, upscaledVideoUrl, extract });
-    await patchJob(jobId, { stage: "packaging", progress: 100 });
+    await patchJob(jobId, {
+      status: "completed",
+      stage: "packaging",
+      progress: 100,
+      completed_at: new Date().toISOString(),
+    });
 
     console.log(`[worker] job ${jobId} completed → product ${productId}`);
   } catch (err) {
