@@ -113,7 +113,7 @@ export async function generateCleanProductImage(
   prompt: string,
   onProgress?: (pct: number) => void,
 ): Promise<string> {
-  const job = await hfPost("flux-pro/kontext/max/text-to-image", {
+  const job = await hfPost("/flux-pro/kontext/max/text-to-image", {
     prompt,
     aspect_ratio: "1:1",
     resolution: "2k",
