@@ -43,12 +43,9 @@ async function processRenderJob(job: Job<RenderJobData>) {
     );
     await patchJob(jobId, { stage: "rendering", progress: 100 });
 
-    // Stage 3: Upscale — ByteDance SeeDVR upscaler enhances to 4K
-    await patchJob(jobId, { stage: "upscaling", progress: 5 });
-    const upscaledVideoUrl = await upscaleOrbitVideo(orbit, (pct) =>
-      patchJob(jobId, { stage: "upscaling", progress: 5 + Math.round(pct * 0.9) }),
-    );
+    // Stage 3: Upscale — skipped; use DoP video directly until correct endpoint confirmed
     await patchJob(jobId, { stage: "upscaling", progress: 100 });
+    const upscaledVideoUrl = orbit.url;
 
     // Stage 4: Extract — 72 stills at 5° intervals via ffmpeg (optional)
     await patchJob(jobId, { stage: "extracting", progress: 5 });
