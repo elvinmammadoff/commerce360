@@ -19,6 +19,10 @@
 
 # production
 /build
+/dist
+
+# uploads (user-generated content)
+/public/uploads/
 
 # misc
 .DS_Store
