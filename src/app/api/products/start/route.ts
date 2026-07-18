@@ -90,7 +90,14 @@ export async function POST(req: NextRequest) {
   }
   const { job } = (await jobRes.json()) as { job: { id: string; workspace_id: string } };
 
-  // 4. Enqueue to BullMQ — worker picks up and runs Higgsfield pipeline
+  // 4. Store imageUrl in Redis so retry can re-enqueue without re-upload (30-day TTL)
+  const redis = new Redis(process.env.REDIS_URL ?? "redis://127.0.0.1:6379", {
+    maxRetriesPerRequest: null,
+  });
+  await redis.set(`product:${product.id}:imageUrl`, imageUrl, "EX", 60 * 60 * 24 * 30);
+  await redis.quit();
+
+  // 5. Enqueue to BullMQ — worker picks up and runs Higgsfield pipeline
   const queue = getQueue();
   await queue.add("render", {
     jobId: job.id,

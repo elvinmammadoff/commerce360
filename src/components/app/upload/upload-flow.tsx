@@ -313,6 +313,47 @@ export function UploadFlow({ prefill }: { prefill?: Product }) {
       return;
     }
 
+    // Retry a failed render — reuse the existing product, create a new job.
+    if (isRetry && prefill?.id) {
+      setGenerating(true);
+      try {
+        const fd = new FormData();
+        if (sourceFile) fd.append("file", sourceFile);
+        fd.append("background", background);
+        fd.append("resolution", resolution);
+        fd.append("category", category);
+
+        const res = await fetch(`/api/products/${prefill.id}/retry`, { method: "POST", body: fd });
+        const data = await res.json() as { productId?: string; error?: string };
+
+        if (!res.ok) {
+          if (res.status === 402) {
+            toast.error("Out of credits", { description: "Buy more credits to keep rendering." });
+          } else if (res.status === 400 && data.error?.includes("re-upload")) {
+            toast.error("Re-upload required", {
+              description: "Original image not found. Select your photo again and retry.",
+            });
+            // Clear the fake pre-filled source so dropzone shows
+            setSource(null);
+            setSourceFile(null);
+          } else {
+            toast.error("Failed to retry render", { description: data.error ?? "Unknown error" });
+          }
+          return;
+        }
+
+        toast.info("Render started", {
+          description: `${name.trim()} re-entered the pipeline.`,
+        });
+        router.push(`/products/${data.productId}`);
+      } catch {
+        toast.error("Network error — please try again");
+      } finally {
+        setGenerating(false);
+      }
+      return;
+    }
+
     // Demo sample → simulation (shows fake pipeline, uses demo assets).
     const productId = sim.startGeneration({
       name: name.trim(),
