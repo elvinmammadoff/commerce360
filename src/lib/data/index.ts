@@ -150,7 +150,7 @@ function mapProduct(p: RawProduct): Product {
     id: p.id,
     name: p.name,
     sku: p.sku ?? "",
-    category: (p.category ?? "seating") as ProductCategory,
+    category: (p.category ?? "general") as ProductCategory,
     status: p.status as ProductStatus,
     version: p.version,
     createdAt: p.created_at,

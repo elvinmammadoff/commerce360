@@ -1,71 +1,65 @@
 import type { Category } from "../presets";
 
 const VALID: Category[] = [
-  "seating",
-  "sofas",
-  "beds",
-  "tables",
-  "lighting",
-  "storage",
+  "accessories",
+  "electronics",
+  "fashion",
+  "furniture",
+  "food_beverage",
+  "general",
 ];
 
 /**
- * Stage 0 — Detect product category from the source image.
+ * Stage 0 — Detect product category from the source image via Claude vision.
  *
- * A single vision call classifies the uploaded photo so the orbit camera is
- * framed correctly (chair at eye level, table angled down, etc.). We never
- * trust a merchant-picked category — the photo is the source of truth.
- *
- * Uses an OpenAI-compatible vision endpoint when `VISION_API_KEY` is set.
- * Without it (or on any failure) we return `null` and the caller keeps the
- * category already on the product, so the pipeline never blocks on detection.
+ * Uses claude-haiku-4-5 (cheap, fast) to classify the photo so the orbit
+ * camera is framed correctly. Falls back to null on any failure so the
+ * pipeline never blocks — caller keeps the category already on the product.
  */
 export async function detectCategory(
   imageUrl: string,
 ): Promise<Category | null> {
-  const apiKey = process.env.VISION_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return null;
 
-  const base = process.env.VISION_API_BASE ?? "https://api.openai.com/v1";
-  const model = process.env.VISION_MODEL ?? "gpt-4o-mini";
-
   try {
-    const res = await fetch(`${base}/chat/completions`, {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model,
-        max_tokens: 5,
-        temperature: 0,
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 10,
         messages: [
           {
             role: "user",
             content: [
               {
-                type: "text",
-                text: `Classify this product photo into exactly one category. Reply with only the single word: ${VALID.join(
-                  ", ",
-                )}.`,
+                type: "image",
+                source: { type: "url", url: imageUrl },
               },
-              { type: "image_url", image_url: { url: imageUrl } },
+              {
+                type: "text",
+                text: `Classify this product photo into exactly one category. Reply with only one word from this list: ${VALID.join(", ")}.`,
+              },
             ],
           },
         ],
       }),
     });
+
     if (!res.ok) return null;
 
     const data = (await res.json()) as {
-      choices?: { message?: { content?: string } }[];
+      content?: { type: string; text?: string }[];
     };
-    const raw = data.choices?.[0]?.message?.content?.trim().toLowerCase() ?? "";
+    const raw = data.content?.[0]?.text?.trim().toLowerCase() ?? "";
     const match = VALID.find((c) => raw.includes(c));
     return match ?? null;
   } catch {
-    // Network/parse failure — fall back to the product's existing category.
     return null;
   }
 }

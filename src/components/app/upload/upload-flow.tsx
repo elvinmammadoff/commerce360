@@ -46,8 +46,9 @@ const SAMPLES = [
     video: "/demo/chair.mp4",
     name: "Vireo Lounge Chair — Oxblood Velvet",
     sku: "VRO-114-OXB",
-    category: "seating" as ProductCategory,
+    category: "furniture" as ProductCategory,
     fileName: "vireo-oxblood-hero.jpg",
+    demoAssetIndex: 0,
   },
   {
     id: "bed",
@@ -55,8 +56,9 @@ const SAMPLES = [
     video: "/demo/bed.mp4",
     name: "Solvei Upholstered Bed — Dove Grey",
     sku: "SLV-208-DGR",
-    category: "beds" as ProductCategory,
+    category: "furniture" as ProductCategory,
     fileName: "solvei-dove-front.jpg",
+    demoAssetIndex: 1,
   },
 ];
 
@@ -192,6 +194,7 @@ export function UploadFlow({ prefill }: { prefill?: Product }) {
   const [resolution, setResolution] = React.useState<"1080p" | "4K">("4K");
   const [activeProductId, setActiveProductId] = React.useState<string | null>(null);
   const [generating, setGenerating] = React.useState(false);
+  const [demoAssetIndex, setDemoAssetIndex] = React.useState<number>(0);
 
   const isRetry = prefill?.status === "failed";
 
@@ -255,6 +258,7 @@ export function UploadFlow({ prefill }: { prefill?: Product }) {
       });
       setName(sample.name);
       setSku(sample.sku);
+      setDemoAssetIndex(sample.demoAssetIndex);
     } catch {
       toast.error("Couldn't load the sample photo");
     }
@@ -317,6 +321,7 @@ export function UploadFlow({ prefill }: { prefill?: Product }) {
       sourceImageName: source.fileName,
       background,
       resolution,
+      demoAssetIndex,
     });
     setActiveProductId(productId);
     toast.info("Render started", {

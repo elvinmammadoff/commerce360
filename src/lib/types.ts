@@ -88,12 +88,12 @@ export type ProductStatus =
   | "failed";
 
 export type ProductCategory =
-  | "seating"
-  | "tables"
-  | "beds"
-  | "lighting"
-  | "storage"
-  | "sofas";
+  | "accessories"
+  | "electronics"
+  | "fashion"
+  | "furniture"
+  | "food_beverage"
+  | "general";
 
 export interface ProductAssets {
   /** Seamless orbit loop; also drives the 360° viewer via scrubbing. */

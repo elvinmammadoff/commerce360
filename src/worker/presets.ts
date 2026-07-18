@@ -8,27 +8,27 @@
  */
 
 export type Category =
-  | "seating"
-  | "sofas"
-  | "beds"
-  | "tables"
-  | "lighting"
-  | "storage";
+  | "accessories"
+  | "electronics"
+  | "fashion"
+  | "furniture"
+  | "food_beverage"
+  | "general";
 
 /** Per-category camera framing fragment injected into the orbit prompt. */
 const CAMERA: Record<Category, string> = {
-  seating:
-    "camera at seat eye-level, wide 360-degree arc, subject centered, full chair in frame",
-  sofas:
-    "camera slightly above seat height, wide sweeping 360-degree arc, entire sofa in frame",
-  beds:
-    "camera elevated 30 degrees above, wide slow 360-degree arc, headboard and top surface clearly visible",
-  tables:
-    "camera 35 degrees above looking down, wide 360-degree arc, tabletop surface and legs visible",
-  lighting:
-    "low camera angle emphasizing the silhouette and shade, slow even 360-degree rotation",
-  storage:
-    "camera at mid-height eye-level, wide 360-degree arc, doors and front face clearly visible",
+  accessories:
+    "camera at product mid-height, tight 360-degree orbit, subject fills frame, fine detail visible",
+  electronics:
+    "camera elevated 20 degrees above, clean tight 360-degree arc, product centered, all sides visible",
+  fashion:
+    "camera at product mid-height, wide 360-degree arc, full garment or item visible",
+  furniture:
+    "camera at mid-height eye-level, wide sweeping 360-degree arc, entire piece in frame",
+  food_beverage:
+    "camera at label-height, tight 360-degree rotation, front label and packaging clearly visible",
+  general:
+    "camera at mid-height, smooth 360-degree orbit, subject centered, full product in frame",
 };
 
 /** Background label → studio surface + lighting fragment. */

@@ -20,6 +20,8 @@ export interface StartGenerationInput {
   sourceImageName: string;
   background: string;
   resolution: "1080p" | "4K";
+  /** Index into DEMO_ORBITS for which demo video to show when the sim completes. */
+  demoAssetIndex?: number;
 }
 
 interface StoredState {
@@ -212,7 +214,7 @@ export function SimulationProvider({
             ...prev.assetIndexByProduct,
             // Match the demo asset to the product type so the finished
             // render looks like what was uploaded.
-            [productId]: input.category === "beds" ? 1 : 0,
+            [productId]: input.demoAssetIndex ?? 0,
           },
         };
         persist(userId, next);

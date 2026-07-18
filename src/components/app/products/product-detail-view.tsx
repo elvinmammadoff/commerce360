@@ -51,12 +51,12 @@ import { useSimulation } from "@/lib/simulation/provider";
 import type { GenerationJob, Hotspot, Product } from "@/lib/types";
 
 const CATEGORY_LABEL: Record<Product["category"], string> = {
-  seating: "Seating",
-  tables: "Tables",
-  beds: "Beds",
-  lighting: "Lighting",
-  storage: "Storage",
-  sofas: "Sofas",
+  accessories: "Accessories",
+  electronics: "Electronics",
+  fashion: "Fashion",
+  furniture: "Furniture",
+  food_beverage: "Food & Beverage",
+  general: "General",
 };
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {

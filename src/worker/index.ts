@@ -29,7 +29,7 @@ async function processRenderJob(job: Job<RenderJobData>) {
     // The photo is the source of truth; the merchant-picked category is only a
     // fallback when detection is unavailable.
     const detected =
-      (await detectCategory(imageUrl)) ?? job.data.category ?? "seating";
+      (await detectCategory(imageUrl)) ?? job.data.category ?? "general";
     await patchProduct(productId, { category: detected });
 
     // Stage 1: Normalize — FLUX.2 Pro Kontext cleans the source image

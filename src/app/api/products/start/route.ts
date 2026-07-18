@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
   const sku = (formData.get("sku") as string | null)?.trim() || "SKU-TBD";
   const background = (formData.get("background") as string | null) || "Studio white";
   const resolution = (formData.get("resolution") as string | null) || "4K";
-  const category = (formData.get("category") as string | null) || "seating";
+  const category = (formData.get("category") as string | null) || "general";
 
   if (!file || !name) {
     return NextResponse.json({ error: "name and file required" }, { status: 400 });
