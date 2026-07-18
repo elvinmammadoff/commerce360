@@ -9,6 +9,19 @@ import type { AppRole } from "@/lib/types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "https://api.orbittify.com";
 const TOKEN_COOKIE = "c360-token";
+const RECAPTCHA_SECRET = process.env.RECAPTCHA_SECRET_KEY;
+const RECAPTCHA_MIN_SCORE = 0.5;
+
+async function verifyRecaptcha(token: string | null): Promise<boolean> {
+  if (!RECAPTCHA_SECRET || !token) return true; // skip if not configured
+  const res = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ secret: RECAPTCHA_SECRET, response: token }),
+  });
+  const data = (await res.json()) as { success: boolean; score?: number };
+  return data.success && (data.score ?? 1) >= RECAPTCHA_MIN_SCORE;
+}
 
 function safePath(next: string | undefined): string | null {
   return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
@@ -57,6 +70,11 @@ export async function loginAction(
   _prev: string | null,
   formData: FormData
 ): Promise<string | null> {
+  if (formData.get("_honey")) return "Invalid request";
+
+  const recaptchaOk = await verifyRecaptcha(formData.get("recaptcha_token") as string | null);
+  if (!recaptchaOk) return "Request blocked. Please try again.";
+
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const role = ((formData.get("role") as string) ?? "customer") as AppRole;
@@ -111,6 +129,11 @@ export async function registerAction(
   _prev: string | null,
   formData: FormData
 ): Promise<string | null> {
+  if (formData.get("_honey")) return "Invalid request";
+
+  const recaptchaOk = await verifyRecaptcha(formData.get("recaptcha_token") as string | null);
+  if (!recaptchaOk) return "Request blocked. Please try again.";
+
   const name = formData.get("name") as string;
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;

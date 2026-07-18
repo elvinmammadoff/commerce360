@@ -211,7 +211,7 @@ export function BillingView({
           </div>
           <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
             <Receipt className="size-3.5" aria-hidden="true" />
-            Receipts are issued by Commerce360 AI, Inc. and settle in USD via
+            Receipts are issued by Orbittify, Inc. and settle in USD via
             Stripe.
           </p>
         </CardContent>

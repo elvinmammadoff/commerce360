@@ -490,7 +490,7 @@ export const adminJobs: AdminJobRow[] = [
   },
 ];
 
-/** Manual wallet adjustments by Commerce360 staff, newest first. */
+/** Manual wallet adjustments by Orbittify staff, newest first. */
 export const adminAdjustments: AdminAdjustment[] = [
   {
     id: "adj_0142",

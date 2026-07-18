@@ -26,7 +26,12 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { productId, imageUrl } = body as { productId?: string; imageUrl?: string };
+  const { productId, imageUrl, category, background } = body as {
+    productId?: string;
+    imageUrl?: string;
+    category?: string;
+    background?: string;
+  };
   if (!productId || !imageUrl) {
     return NextResponse.json({ error: "productId and imageUrl required" }, { status: 400 });
   }
@@ -58,6 +63,8 @@ export async function POST(req: NextRequest) {
     productId,
     workspaceId: job.workspace_id,
     imageUrl,
+    category: category as RenderJobData["category"],
+    background,
   });
 
   return NextResponse.json({ jobId: job.id }, { status: 202 });

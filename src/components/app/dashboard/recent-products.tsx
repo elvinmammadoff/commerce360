@@ -5,11 +5,11 @@ import { ArrowUpRight } from "lucide-react";
 
 import { ProductThumb } from "@/components/app/product-thumb";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -22,16 +22,9 @@ export function RecentProducts({ initial }: { initial: Product[] }) {
 
   return (
     <Card>
-      <CardHeader className="flex-row items-start justify-between space-y-0">
-        <div className="space-y-1.5">
-          <CardTitle>Recent products</CardTitle>
-          <CardDescription>Latest uploads across the workspace</CardDescription>
-        </div>
-        <Button asChild variant="ghost" size="sm" className="gap-1 text-muted-foreground">
-          <Link href="/products">
-            All <ArrowUpRight aria-hidden="true" />
-          </Link>
-        </Button>
+      <CardHeader>
+        <CardTitle>Recent products</CardTitle>
+        <CardDescription>Latest uploads across the workspace</CardDescription>
       </CardHeader>
       <CardContent>
         <ul className="space-y-1">
@@ -56,6 +49,15 @@ export function RecentProducts({ initial }: { initial: Product[] }) {
           ))}
         </ul>
       </CardContent>
+      <CardFooter className="border-t pt-4">
+        <Link
+          href="/products"
+          className="flex w-full items-center justify-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          View all products
+          <ArrowUpRight className="size-3.5" aria-hidden="true" />
+        </Link>
+      </CardFooter>
     </Card>
   );
 }

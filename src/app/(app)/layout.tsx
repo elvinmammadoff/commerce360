@@ -23,7 +23,7 @@ export default async function AppLayout({
   ]);
 
   return (
-    <SimulationProvider initialCredits={workspace.creditsBalance}>
+    <SimulationProvider initialCredits={workspace.creditsBalance} userId={user.id}>
       <a
         href="#main"
         className="sr-only rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50"

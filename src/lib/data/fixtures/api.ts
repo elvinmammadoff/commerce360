@@ -60,15 +60,15 @@ export const apiEndpoints: ApiEndpoint[] = [
 ];
 
 export const apiCodeSamples = {
-  curl: `curl -X POST https://api.commerce360.ai/v1/products \\
-  -H "Authorization: Bearer $C360_API_KEY" \\
+  curl: `curl -X POST https://api.orbittify.com/v1/products \\
+  -H "Authorization: Bearer $ORBITTIFY_API_KEY" \\
   -F "source=@vireo-oxblood-hero.jpg" \\
   -F "name=Vireo Lounge Chair — Walnut" \\
   -F "preset=studio-white" \\
   -F "output=frames-72,video-4k,marketplace"`,
-  node: `import Commerce360 from "@commerce360/sdk";
+  node: `import Orbittify from "@orbittify/sdk";
 
-const c360 = new Commerce360(process.env.C360_API_KEY);
+const c360 = new Orbittify(process.env.ORBITTIFY_API_KEY);
 
 const product = await c360.products.create({
   source: fs.createReadStream("vireo-oxblood-hero.jpg"),

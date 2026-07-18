@@ -1,56 +1,76 @@
 import { Worker, type Job } from "bullmq";
 import { connection } from "./redis";
 import { patchJob, patchProduct, refundRenderCredit } from "./api";
+import { detectCategory } from "./stages/detect";
+import { normalizeImage } from "./stages/normalize";
+import { renderOrbitVideo } from "./stages/render";
+import { upscaleOrbitVideo } from "./stages/upscale";
+import { extractFrames } from "./stages/extract";
+import { packageAssets } from "./stages/package";
+import type { Category } from "./presets";
 
 export interface RenderJobData {
   jobId: string;
   productId: string;
   workspaceId: string;
   imageUrl: string;
+  /** Merchant-selected fallback category; overridden by AI detection. */
+  category?: Category;
+  /** Studio background choice, e.g. "Studio white". */
+  background?: string;
 }
 
-type StageId =
-  | "queued"
-  | "normalizing"
-  | "rendering"
-  | "upscaling"
-  | "extracting"
-  | "packaging";
-
 async function processRenderJob(job: Job<RenderJobData>) {
-  const { jobId, productId, workspaceId } = job.data;
+  const { jobId, productId, workspaceId, imageUrl } = job.data;
+  const background = job.data.background ?? "Studio white";
 
   try {
-    // Stage 1: Normalize image (Flux 2 via Higgsfield)
+    // Stage 0: Detect — vision model classifies the product from the photo.
+    // The photo is the source of truth; the merchant-picked category is only a
+    // fallback when detection is unavailable.
+    const detected =
+      (await detectCategory(imageUrl)) ?? job.data.category ?? "seating";
+    await patchProduct(productId, { category: detected });
+
+    // Stage 1: Normalize — FLUX.2 Pro Kontext cleans the source image
     await patchJob(jobId, { stage: "normalizing", progress: 5 });
-    // TODO: await normalizeImage(imageUrl)
+    const normalizedUrl = await normalizeImage(imageUrl, background, (pct) =>
+      patchJob(jobId, { stage: "normalizing", progress: 5 + Math.round(pct * 0.9) }),
+    );
     await patchJob(jobId, { stage: "normalizing", progress: 100 });
 
-    // Stage 2: Orbit video render (Seedance 1.0 via Higgsfield)
+    // Stage 2: Render — Higgsfield DoP model generates the 360° orbit video
     await patchJob(jobId, { stage: "rendering", progress: 5 });
-    // TODO: await renderOrbitVideo(normalizedUrl)
+    const orbit = await renderOrbitVideo(normalizedUrl, detected, background, (pct) =>
+      patchJob(jobId, { stage: "rendering", progress: 5 + Math.round(pct * 0.9) }),
+    );
     await patchJob(jobId, { stage: "rendering", progress: 100 });
 
-    // Stage 3: 4K upscale (SeeDVR via Higgsfield)
+    // Stage 3: Upscale — ByteDance SeeDVR upscaler enhances to 4K
     await patchJob(jobId, { stage: "upscaling", progress: 5 });
-    // TODO: await upscaleVideo(orbitVideoUrl)
+    const upscaledVideoUrl = await upscaleOrbitVideo(orbit, (pct) =>
+      patchJob(jobId, { stage: "upscaling", progress: 5 + Math.round(pct * 0.9) }),
+    );
     await patchJob(jobId, { stage: "upscaling", progress: 100 });
 
-    // Stage 4: Extract 72 frames
+    // Stage 4: Extract — 72 stills at 5° intervals via ffmpeg (optional)
     await patchJob(jobId, { stage: "extracting", progress: 5 });
-    // TODO: await extractFrames(upscaledVideoUrl)
+    const extract = await extractFrames(upscaledVideoUrl).catch((err) => {
+      // ffmpeg not available or extraction failed — log and continue without frames
+      console.warn(`[worker] frame extraction skipped: ${(err as Error).message}`);
+      return null;
+    });
     await patchJob(jobId, { stage: "extracting", progress: 100 });
 
-    // Stage 5: Package + upload to storage
+    // Stage 5: Package — persist asset URLs and mark product completed
     await patchJob(jobId, { stage: "packaging", progress: 5 });
-    // TODO: await packageAssets({ productId, frames, video })
+    await packageAssets({ productId, orbit, upscaledVideoUrl, extract });
     await patchJob(jobId, { stage: "packaging", progress: 100 });
 
-    const completedAt = new Date().toISOString();
-    await patchProduct(productId, { status: "completed", completed_at: completedAt });
-    await patchJob(jobId, { stage: "packaging", progress: 100, completed_at: completedAt });
+    console.log(`[worker] job ${jobId} completed → product ${productId}`);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
+    console.error(`[worker] job ${jobId} failed:`, message);
 
     await patchJob(jobId, { stage: "queued", progress: 0, error: message });
     await patchProduct(productId, { status: "failed" });
@@ -73,4 +93,4 @@ worker.on("failed", (job: { id?: string } | undefined, err: Error) => {
   console.error(`[worker] job ${job?.id} failed:`, err.message);
 });
 
-console.log("[worker] c360-worker started, waiting for jobs…");
+console.log("[worker] orbittify-worker started, waiting for jobs…");

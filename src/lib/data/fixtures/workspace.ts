@@ -40,7 +40,7 @@ export const adminAccount: CurrentUser = {
   appRole: "admin",
 };
 
-/** Commerce360 staff with admin-console access, managed in Admin → Settings. */
+/** Orbittify staff with admin-console access, managed in Admin → Settings. */
 export const adminStaff: TeamMember[] = [
   {
     id: "staff_01",

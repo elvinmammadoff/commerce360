@@ -228,6 +228,25 @@ export async function getProduct(id: string): Promise<Product | undefined> {
   }
 }
 
+/**
+ * Resolve a product by its public share slug — used by the account-free
+ * `/view` and `/embed` routes. Hits the public share endpoint first, then
+ * falls back to the bundled catalog so the demo links always resolve.
+ */
+export async function getProductBySlug(
+  slug: string,
+): Promise<Product | undefined> {
+  try {
+    const data = await apiJson<RawProduct>(`/api/share/${slug}`);
+    return mapProduct(data);
+  } catch {
+    const { products } = await import("./fixtures/products");
+    return products.find(
+      (p) => p.shareSlug === slug && p.status === "completed" && p.assets,
+    );
+  }
+}
+
 export async function getJobs(): Promise<GenerationJob[]> {
   const data = await apiJson<RawJob[]>("/api/jobs");
   return data.map(mapJob);

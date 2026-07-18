@@ -7,8 +7,11 @@ import { DEMO_ORBITS } from "@/lib/demo-assets";
 import { deriveJobState, fakeRenderSeconds } from "@/lib/simulation/engine";
 import type { GenerationJob, Product, ProductCategory } from "@/lib/types";
 
-const STORAGE_KEY = "c360.simulation.v2";
 const TICK_MS = 250;
+
+function storageKey(userId: string) {
+  return `c360.simulation.v2.${userId}`;
+}
 
 export interface StartGenerationInput {
   name: string;
@@ -53,9 +56,9 @@ const EMPTY_STATE: StoredState = {
   assetIndexByProduct: {},
 };
 
-function loadStored(): StoredState {
+function loadStored(userId: string): StoredState {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(storageKey(userId));
     if (!raw) return EMPTY_STATE;
     const parsed = JSON.parse(raw) as StoredState;
     return {
@@ -70,9 +73,9 @@ function loadStored(): StoredState {
   }
 }
 
-function persist(state: StoredState) {
+function persist(userId: string, state: StoredState) {
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    window.localStorage.setItem(storageKey(userId), JSON.stringify(state));
   } catch {
     // Storage full or blocked — the demo simply won't persist across reloads.
   }
@@ -80,9 +83,12 @@ function persist(state: StoredState) {
 
 export function SimulationProvider({
   initialCredits,
+  userId,
   children,
 }: {
   initialCredits: number;
+  /** Namespaces the localStorage state per account so switching Google accounts never shares sim data. */
+  userId: string;
   children: React.ReactNode;
 }) {
   const [stored, setStored] = React.useState<StoredState>(EMPTY_STATE);
@@ -90,8 +96,8 @@ export function SimulationProvider({
 
   // Hydrate after mount so SSR output stays deterministic.
   React.useEffect(() => {
-    setStored(loadStored());
-  }, []);
+    setStored(loadStored(userId));
+  }, [userId]);
 
   const hasActiveJobs = stored.jobs.some(
     (job) => job.status === "queued" || job.status === "running",
@@ -140,7 +146,7 @@ export function SimulationProvider({
           };
         }),
       };
-      persist(next);
+      persist(userId, next);
       return next;
     });
 
@@ -209,13 +215,13 @@ export function SimulationProvider({
             [productId]: input.category === "beds" ? 1 : 0,
           },
         };
-        persist(next);
+        persist(userId, next);
         return next;
       });
 
       return productId;
     },
-    [],
+    [userId],
   );
 
   const purchaseCredits = React.useCallback((credits: number) => {
@@ -225,10 +231,10 @@ export function SimulationProvider({
         ...prev,
         creditsPurchased: prev.creditsPurchased + credits,
       };
-      persist(next);
+      persist(userId, next);
       return next;
     });
-  }, []);
+  }, [userId]);
 
   // Expose live-derived stage/progress without persisting every tick.
   const value = React.useMemo<SimulationContextValue>(() => {

@@ -81,7 +81,7 @@ export function MarketingFooter() {
           ))}
         </div>
         <div className="mt-12 flex flex-col justify-between gap-3 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row">
-          <p>© 2026 Commerce360 AI, Inc. All rights reserved.</p>
+          <p>© 2026 Orbittify, Inc. All rights reserved.</p>
           <p>Built for teams that ship catalogs, not photoshoots.</p>
         </div>
       </Reveal>

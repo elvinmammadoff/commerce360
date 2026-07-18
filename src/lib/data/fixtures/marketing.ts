@@ -87,6 +87,11 @@ export const faqs: Faq[] = [
       "Never. Credits are a one-time purchase that live in your workspace wallet indefinitely — there's no subscription and nothing to cancel. Buy more whenever you need them.",
   },
   {
+    question: "Who hosts the 360° viewer — is there a monthly fee?",
+    answer:
+      "We do, and there's no separate hosting bill. Every render includes hosting, the global CDN, and the share page for the life of your account — the credit you spend covers it. No subscription, no per-view charge; just top up credits as you add products.",
+  },
+  {
     question: "Can I use the assets commercially?",
     answer:
       "Yes — you own everything we generate from your photos, with full commercial rights and no watermarks on any credit pack.",

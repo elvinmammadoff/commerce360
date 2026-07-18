@@ -2,11 +2,12 @@
 const API_BASE = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "https://api.orbittify.com";
 const SERVICE_TOKEN = process.env.API_SERVICE_TOKEN ?? "";
 
-async function workerFetch(path: string, options: RequestInit = {}): Promise<Response> {
+export async function workerFetch(path: string, options: RequestInit = {}): Promise<Response> {
+  const isFormData = options.body instanceof FormData;
   return fetch(`${API_BASE}${path}`, {
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      ...(!isFormData ? { "Content-Type": "application/json" } : {}),
       Accept: "application/json",
       Authorization: `Bearer ${SERVICE_TOKEN}`,
       ...(options.headers as Record<string, string>),
@@ -27,7 +28,7 @@ export async function patchJob(
 
 export async function patchProduct(
   productId: string,
-  data: { status: string; completed_at?: string }
+  data: { status?: string; completed_at?: string; category?: string }
 ): Promise<void> {
   const res = await workerFetch(`/api/products/${productId}`, {
     method: "PATCH",

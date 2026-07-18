@@ -1,3 +1,4 @@
+import { getSessionUser } from "@/lib/auth";
 import { getWorkspace } from "@/lib/data";
 import { SimulationProvider } from "@/lib/simulation/provider";
 
@@ -10,9 +11,9 @@ export default async function ViewerLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const workspace = await getWorkspace();
+  const [workspace, user] = await Promise.all([getWorkspace(), getSessionUser()]);
   return (
-    <SimulationProvider initialCredits={workspace.creditsBalance}>
+    <SimulationProvider initialCredits={workspace.creditsBalance} userId={user.id}>
       {children}
     </SimulationProvider>
   );

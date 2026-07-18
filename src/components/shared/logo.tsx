@@ -52,7 +52,7 @@ export function Logo({
   return (
     <Link
       href={href}
-      aria-label="Commerce360 AI home"
+      aria-label="Orbittify home"
       className={cn(
         "flex items-center gap-2.5 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
         className,
@@ -61,10 +61,7 @@ export function Logo({
       <OrbitMark />
       {wordmark && (
         <span className="text-[15px] font-semibold tracking-tight text-foreground">
-          Commerce
-          <span className="bg-linear-to-r from-[#5B8CFF] to-[#a855f7] bg-clip-text text-transparent">
-            360
-          </span>
+          Orbittify
         </span>
       )}
     </Link>

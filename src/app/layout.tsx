@@ -17,19 +17,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://commerce360.ai"),
+  metadataBase: new URL("https://orbittify.com"),
   title: {
-    default: "Commerce360 AI — Product visuals from a single photo",
-    template: "%s · Commerce360 AI",
+    default: "Orbittify — 360° product visuals from a single photo",
+    template: "%s · Orbittify",
   },
   description:
     "Turn one product photo into a 360° viewer, orbit video, 72 studio frames, and marketplace-ready images. Built for furniture, electronics, and home brands.",
-  applicationName: "Commerce360 AI",
+  applicationName: "Orbittify",
   openGraph: {
-    title: "Commerce360 AI",
+    title: "Orbittify",
     description:
       "Generate premium product visuals from a single photo — 360° viewers, orbit videos, and marketplace image sets.",
-    siteName: "Commerce360 AI",
+    siteName: "Orbittify",
     type: "website",
   },
 };

@@ -145,7 +145,7 @@ export function Hero() {
               {...enter(0.16)}
               className="mt-5 max-w-lg text-base text-pretty text-muted-foreground sm:text-lg"
             >
-              Commerce360 turns a single image into an interactive 360° viewer,
+              Orbittify turns a single image into an interactive 360° viewer,
               orbit videos, marketplace-ready image sets and AI product assets.
               All in minutes, not days.
             </motion.p>

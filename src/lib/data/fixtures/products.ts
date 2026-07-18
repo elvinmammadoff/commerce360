@@ -21,6 +21,12 @@ export const products: Product[] = [
     shareSlug: "vireo-lounge-chair-oxblood",
     sourceImageName: "vireo-oxblood-hero.jpg",
     renderSeconds: 673,
+    isDemo: true,
+    hotspots: [
+      { id: "hs_vireo_1", label: "Solid oak frame", angle: 80, x: 34, y: 62 },
+      { id: "hs_vireo_2", label: "Italian velvet upholstery", angle: 210, x: 56, y: 38 },
+      { id: "hs_vireo_3", label: "Buy now — $1,290", angle: 350, x: 50, y: 82, href: "#" },
+    ],
     assets: {
       orbitVideoUrl: "/demo/chair.mp4",
       videoResolution: "4K",
@@ -47,6 +53,12 @@ export const products: Product[] = [
     shareSlug: "solvei-upholstered-bed-dove",
     sourceImageName: "solvei-dove-front.jpg",
     renderSeconds: 655,
+    isDemo: true,
+    hotspots: [
+      { id: "hs_solvei_1", label: "Linen-blend headboard", angle: 30, x: 42, y: 40 },
+      { id: "hs_solvei_2", label: "Solid ash legs", angle: 150, x: 60, y: 74 },
+      { id: "hs_solvei_3", label: "Buy now — $2,150", angle: 300, x: 50, y: 80, href: "#" },
+    ],
     assets: {
       orbitVideoUrl: "/demo/bed.mp4",
       videoResolution: "4K",

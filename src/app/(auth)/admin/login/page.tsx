@@ -78,7 +78,7 @@ export default async function AdminLoginPage({
             console, full visibility.”
           </blockquote>
           <figcaption className="mt-6 text-sm text-muted-foreground">
-            Commerce360 operations
+            Orbittify operations
           </figcaption>
         </figure>
       </div>

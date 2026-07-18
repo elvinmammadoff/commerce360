@@ -150,7 +150,7 @@ function WorkspaceCard({ workspace }: { workspace: Workspace }) {
           <Label htmlFor="ws-slug">Share URL</Label>
           <div className="flex items-center gap-0">
             <span className="flex h-8 items-center rounded-l-lg border border-r-0 border-input bg-muted px-2.5 font-mono text-xs text-muted-foreground">
-              share.commerce360.ai/
+              orbittify.com/view/
             </span>
             <Input
               id="ws-slug"

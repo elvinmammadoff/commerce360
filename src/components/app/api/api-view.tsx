@@ -240,7 +240,7 @@ function EndpointsCard({ endpoints }: { endpoints: ApiEndpoint[] }) {
         <CardTitle>Endpoints</CardTitle>
         <CardDescription>
           REST over HTTPS · base URL{" "}
-          <code className="font-mono text-xs">https://api.commerce360.ai</code>
+          <code className="font-mono text-xs">https://api.orbittify.com</code>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">

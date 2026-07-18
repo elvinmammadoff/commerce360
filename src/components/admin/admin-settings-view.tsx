@@ -371,7 +371,7 @@ function StaffCard({ staff }: { staff: TeamMember[] }) {
         <div className="space-y-1.5">
           <CardTitle>Staff access</CardTitle>
           <CardDescription>
-            Commerce360 team members with admin-console access
+            Orbittify team members with admin-console access
           </CardDescription>
         </div>
         <InviteStaffDialog />

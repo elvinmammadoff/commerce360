@@ -5,6 +5,15 @@ import { Maximize2, Minimize2, Move3d, Pause, Play } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import type { Hotspot } from "@/lib/types";
+
+/** Angular half-window (degrees) over which a hotspot fades in and out. */
+const HOTSPOT_WINDOW = 32;
+
+/** Shortest signed angle (−180..180) from `from` to `to`. */
+function angleDelta(from: number, to: number): number {
+  return ((to - from + 540) % 360) - 180;
+}
 
 /** Full drag across the stage ≈ one and a bit rotations — feels 1:1. */
 const DRAG_ROTATIONS_PER_WIDTH = 1.15;
@@ -21,6 +30,10 @@ export interface TurntableViewerProps {
   /** Compact HUD for embeds (landing hero). */
   compact?: boolean;
   productName?: string;
+  /** Interactive hotspots overlaid on the stage, gated by orbit angle. */
+  hotspots?: Hotspot[];
+  /** Reports the live orbit angle (degrees) — used by the hotspot editor. */
+  onAngleChange?: (angle: number) => void;
 }
 
 function wrapTime(time: number, duration: number): number {
@@ -36,9 +49,14 @@ export function TurntableViewer({
   autoRotate = false,
   compact = false,
   productName = "Product",
+  hotspots,
+  onAngleChange,
 }: TurntableViewerProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const videoRef = React.useRef<HTMLVideoElement>(null);
+
+  const onAngleChangeRef = React.useRef(onAngleChange);
+  onAngleChangeRef.current = onAngleChange;
 
   const [ready, setReady] = React.useState(false);
   const [playing, setPlaying] = React.useState(false);
@@ -73,7 +91,9 @@ export function TurntableViewer({
     const tick = () => {
       const video = videoRef.current;
       if (video && video.duration > 0) {
-        setAngle(((video.currentTime / video.duration) * 360) % 360);
+        const a = ((video.currentTime / video.duration) * 360) % 360;
+        setAngle(a);
+        onAngleChangeRef.current?.(a);
       }
       hudRaf.current = requestAnimationFrame(tick);
     };
@@ -358,6 +378,41 @@ export function TurntableViewer({
           ready ? "opacity-100" : "opacity-0",
         )}
       />
+
+      {/* Hotspot overlay — each marker fades in as the orbit reaches its angle */}
+      {ready && hotspots && hotspots.length > 0 && (
+        <div className="pointer-events-none absolute inset-0">
+          {hotspots.map((h) => {
+            const delta = angleDelta(angle, h.angle);
+            const near = Math.abs(delta) <= HOTSPOT_WINDOW;
+            if (!near) return null;
+            const opacity = 1 - Math.abs(delta) / HOTSPOT_WINDOW;
+            const Tag = h.href ? "a" : "button";
+            return (
+              <Tag
+                key={h.id}
+                {...(h.href
+                  ? { href: h.href, target: "_blank", rel: "noopener noreferrer" }
+                  : { type: "button" as const })}
+                onPointerDown={(e: React.PointerEvent) => e.stopPropagation()}
+                style={{
+                  left: `${h.x}%`,
+                  top: `${h.y}%`,
+                  opacity,
+                }}
+                className="pointer-events-auto absolute z-10 flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 rounded-full border border-white/20 bg-black/70 py-1 pr-2.5 pl-1 text-xs text-white shadow-lg backdrop-blur-sm transition-transform duration-150 hover:scale-105"
+                aria-label={h.label}
+              >
+                <span className="relative flex size-4 items-center justify-center">
+                  <span className="absolute inline-flex size-4 animate-ping rounded-full bg-brand/60" />
+                  <span className="relative inline-flex size-2.5 rounded-full bg-brand" />
+                </span>
+                <span className="max-w-40 truncate font-medium">{h.label}</span>
+              </Tag>
+            );
+          })}
+        </div>
+      )}
 
       {!ready && (
         <div className="absolute inset-0 flex items-center justify-center bg-card">

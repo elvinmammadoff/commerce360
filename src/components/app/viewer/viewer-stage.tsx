@@ -69,6 +69,7 @@ export function ViewerStage({
         src={product.assets.orbitVideoUrl}
         frameCount={product.assets.frameCount}
         productName={product.name}
+        hotspots={product.hotspots}
         autoRotate
         className="min-h-svh flex-1 rounded-none border-none bg-black"
       />

@@ -137,9 +137,16 @@ export function ProductsTable({ initial }: { initial: Product[] }) {
                     <div className="flex items-center gap-3">
                       <ProductThumb product={product} className="size-10 shrink-0" />
                       <div className="min-w-0">
-                        <p className="max-w-64 truncate font-medium text-foreground">
-                          {product.name}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="max-w-64 truncate font-medium text-foreground">
+                            {product.name}
+                          </p>
+                          {product.isDemo && (
+                            <span className="shrink-0 rounded-sm border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                              Demo
+                            </span>
+                          )}
+                        </div>
                         <p className="font-mono text-xs text-muted-foreground">
                           {product.sku}
                         </p>

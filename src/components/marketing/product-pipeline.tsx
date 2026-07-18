@@ -77,7 +77,7 @@ export function ProductPipeline() {
         <SectionHeader
           eyebrow="One input, everything out"
           title="One photo becomes your entire catalog"
-          description="Upload a single product shot. Commerce360 returns every asset your storefront, ads, and marketplaces need — from one credit, in about eleven minutes."
+          description="Upload a single product shot. Orbittify returns every asset your storefront, ads, and marketplaces need — from one credit, in about eleven minutes."
         />
 
         <div

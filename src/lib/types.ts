@@ -1,5 +1,5 @@
 /**
- * Domain models for Commerce360 AI.
+ * Domain models for Orbittify.
  *
  * Phase 1 serves these from local fixtures via `lib/data`. Phase 2 swaps the
  * repository layer for Supabase — these shapes are designed to map 1:1 onto
@@ -107,6 +107,23 @@ export interface ProductAssets {
   marketplaceSetSizeMb: number;
 }
 
+/**
+ * Interactive hotspot pinned to the 360° viewer. Appears while the orbit is
+ * near `angle`, positioned at `x`/`y` over the stage. Premium feature — drives
+ * "Buy now", "See material", "View specs" style callouts.
+ */
+export interface Hotspot {
+  id: string;
+  label: string;
+  /** Orbit angle (degrees, 0–359) at which the hotspot is centered. */
+  angle: number;
+  /** Position over the stage, 0–100 percent of width/height. */
+  x: number;
+  y: number;
+  /** Optional link opened on click (e.g. add-to-cart, spec sheet). */
+  href?: string;
+}
+
 export interface Product {
   id: string; // prd_*
   name: string;
@@ -124,6 +141,10 @@ export interface Product {
   renderSeconds: number | null;
   assets: ProductAssets | null;
   failureReason?: string;
+  /** Pre-rendered sample product — shown with a Demo badge, not charged credits. */
+  isDemo?: boolean;
+  /** Interactive viewer hotspots (premium). */
+  hotspots?: Hotspot[];
 }
 
 export type JobStatus = "queued" | "running" | "completed" | "failed";
@@ -346,7 +367,7 @@ export interface UserGrowthPoint {
   users: number;
 }
 
-/** A manual credit grant/deduction performed by Commerce360 staff. */
+/** A manual credit grant/deduction performed by Orbittify staff. */
 export interface AdminAdjustment {
   id: string; // adj_*
   customer: string; // company name
