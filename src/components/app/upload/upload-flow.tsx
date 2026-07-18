@@ -19,28 +19,24 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { guessCategory } from "@/lib/detect-category";
 import { getVideoPoster } from "@/lib/media/video-frames";
 import { useSimulation } from "@/lib/simulation/provider";
 import { cn } from "@/lib/utils";
 import type { Product, ProductCategory } from "@/lib/types";
 
-const CATEGORIES: { value: ProductCategory; label: string }[] = [
-  { value: "seating", label: "Seating" },
-  { value: "sofas", label: "Sofas" },
-  { value: "beds", label: "Beds" },
-  { value: "tables", label: "Tables" },
-  { value: "lighting", label: "Lighting" },
-  { value: "storage", label: "Storage" },
+const BACKGROUNDS: { value: string; label: string; swatch: string }[] = [
+  { value: "Studio white", label: "White", swatch: "linear-gradient(145deg,#ffffff,#eae7e0)" },
+  { value: "Studio warm", label: "Warm", swatch: "linear-gradient(145deg,#f8f0e2,#e6d5bd)" },
+  { value: "Soft gradient", label: "Gradient", swatch: "linear-gradient(145deg,#eef1f6,#ccd4df)" },
+  { value: "Marble", label: "Marble", swatch: "linear-gradient(120deg,#f4f4f2 0%,#e2e2dd 40%,#f0efec 55%,#d7d7d1 100%)" },
+  { value: "Charcoal", label: "Charcoal", swatch: "linear-gradient(145deg,#3b3b3e,#161617)" },
 ];
 
-const BACKGROUNDS = ["Studio white", "Studio warm", "Soft gradient"] as const;
+const OUTPUTS: { value: "1080p" | "4K"; title: string; hint: string }[] = [
+  { value: "1080p", title: "Orbit video", hint: "Great for social sharing" },
+  { value: "4K", title: "Video + 72 stills", hint: "Marketplace & lookbooks" },
+];
 
 // Re-render scenarios for the two catalog products that ship with the demo.
 const SAMPLES = [
@@ -188,14 +184,14 @@ export function UploadFlow({ prefill }: { prefill?: Product }) {
   const sim = useSimulation();
 
   const [source, setSource] = React.useState<SourceImage | null>(null);
+  // Actual File object — present only for real uploads, null for demo samples.
+  const [sourceFile, setSourceFile] = React.useState<File | null>(null);
   const [name, setName] = React.useState(prefill?.name ?? "");
   const [sku, setSku] = React.useState(prefill?.sku ?? "");
-  const [category, setCategory] = React.useState<ProductCategory>(
-    prefill?.category ?? "seating",
-  );
-  const [background, setBackground] = React.useState<string>(BACKGROUNDS[0]);
+  const [background, setBackground] = React.useState<string>(BACKGROUNDS[0].value);
   const [resolution, setResolution] = React.useState<"1080p" | "4K">("4K");
   const [activeProductId, setActiveProductId] = React.useState<string | null>(null);
+  const [generating, setGenerating] = React.useState(false);
 
   const isRetry = prefill?.status === "failed";
 
@@ -234,6 +230,7 @@ export function UploadFlow({ prefill }: { prefill?: Product }) {
 
   const selectFile = (file: File) => {
     if (source?.isObjectUrl) URL.revokeObjectURL(source.previewUrl);
+    setSourceFile(file);
     setSource({
       previewUrl: URL.createObjectURL(file),
       fileName: file.name,
@@ -249,6 +246,7 @@ export function UploadFlow({ prefill }: { prefill?: Product }) {
   const applySample = async (sample: (typeof SAMPLES)[number]) => {
     try {
       const poster = await getVideoPoster(sample.video, 720);
+      setSourceFile(null); // samples use simulation, not real upload
       setSource({
         previewUrl: poster,
         fileName: sample.fileName,
@@ -257,17 +255,61 @@ export function UploadFlow({ prefill }: { prefill?: Product }) {
       });
       setName(sample.name);
       setSku(sample.sku);
-      setCategory(sample.category);
     } catch {
       toast.error("Couldn't load the sample photo");
     }
   };
 
   const canGenerate =
-    source !== null && name.trim().length > 1 && sim.creditsBalance > 0;
+    source !== null && name.trim().length > 1 && sim.creditsBalance > 0 && !generating;
 
-  const generate = () => {
+  const activeSimJob = sim.jobs.find(
+    (j) => j.status === "queued" || j.status === "running",
+  );
+
+  const generate = async () => {
     if (!canGenerate || !source) return;
+
+    const category: ProductCategory =
+      prefill?.category ?? guessCategory(name, source.fileName);
+
+    // Real file upload → full Higgsfield pipeline via real API.
+    if (sourceFile) {
+      setGenerating(true);
+      try {
+        const fd = new FormData();
+        fd.append("file", sourceFile);
+        fd.append("name", name.trim());
+        fd.append("sku", sku.trim() || "SKU-TBD");
+        fd.append("background", background);
+        fd.append("resolution", resolution);
+        fd.append("category", category);
+
+        const res = await fetch("/api/products/start", { method: "POST", body: fd });
+        const data = await res.json() as { productId?: string; error?: string };
+
+        if (!res.ok) {
+          if (res.status === 402) {
+            toast.error("Out of credits", { description: "Buy more credits to keep rendering." });
+          } else {
+            toast.error("Failed to start render", { description: data.error ?? "Unknown error" });
+          }
+          return;
+        }
+
+        toast.info("Render started", {
+          description: `${name.trim()} entered the pipeline · 1 credit used.`,
+        });
+        router.push(`/products/${data.productId}`);
+      } catch {
+        toast.error("Network error — please try again");
+      } finally {
+        setGenerating(false);
+      }
+      return;
+    }
+
+    // Demo sample → simulation (shows fake pipeline, uses demo assets).
     const productId = sim.startGeneration({
       name: name.trim(),
       sku: sku.trim() || "SKU-TBD",
@@ -345,6 +387,7 @@ export function UploadFlow({ prefill }: { prefill?: Product }) {
           onClear={() => {
             if (source?.isObjectUrl) URL.revokeObjectURL(source.previewUrl);
             setSource(null);
+            setSourceFile(null);
           }}
         />
         {!source && (
@@ -393,63 +436,85 @@ export function UploadFlow({ prefill }: { prefill?: Product }) {
               placeholder="ARA-042-IVY"
               className="font-mono"
             />
+            <p className="text-xs text-muted-foreground">
+              Must match the{" "}
+              <code className="font-mono">data-sku</code> in your widget script
+              tag.
+            </p>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Select
-                value={category}
-                onValueChange={(v) => setCategory(v as ProductCategory)}
-              >
-                <SelectTrigger id="category" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((c) => (
-                    <SelectItem key={c.value} value={c.value}>
-                      {c.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div className="space-y-2">
+            <Label>Background</Label>
+            <div
+              className="grid grid-cols-5 gap-2"
+              role="radiogroup"
+              aria-label="Studio background"
+            >
+              {BACKGROUNDS.map((b) => (
+                <button
+                  key={b.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={background === b.value}
+                  aria-label={b.value}
+                  onClick={() => setBackground(b.value)}
+                  className={cn(
+                    "group flex flex-col items-center gap-1 rounded-lg p-1 outline-none",
+                    "focus-visible:ring-3 focus-visible:ring-ring/50",
+                  )}
+                >
+                  <span
+                    style={{ backgroundImage: b.swatch }}
+                    className={cn(
+                      "aspect-square w-full rounded-md ring-1 ring-inset ring-black/10 transition-all",
+                      background === b.value
+                        ? "ring-2 ring-brand"
+                        : "group-hover:ring-muted-foreground/40",
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "text-[10px] leading-tight",
+                      background === b.value
+                        ? "font-medium text-foreground"
+                        : "text-muted-foreground",
+                    )}
+                  >
+                    {b.label}
+                  </span>
+                </button>
+              ))}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="background">Background</Label>
-              <Select value={background} onValueChange={setBackground}>
-                <SelectTrigger id="background" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {BACKGROUNDS.map((b) => (
-                    <SelectItem key={b} value={b}>
-                      {b}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Sparkles className="size-3" aria-hidden="true" />
+              Category is auto-detected from your photo.
+            </p>
           </div>
           <div className="space-y-2">
             <Label>Output</Label>
             <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Output resolution">
-              {(["1080p", "4K"] as const).map((r) => (
+              {OUTPUTS.map((o) => (
                 <button
-                  key={r}
+                  key={o.value}
                   type="button"
                   role="radio"
-                  aria-checked={resolution === r}
-                  onClick={() => setResolution(r)}
+                  aria-checked={resolution === o.value}
+                  onClick={() => setResolution(o.value)}
                   className={cn(
-                    "rounded-lg border px-3 py-2 text-sm font-medium transition-colors duration-150 outline-none",
+                    "rounded-lg border px-3 py-2 text-left transition-colors duration-150 outline-none",
                     "focus-visible:ring-3 focus-visible:ring-ring/50",
-                    resolution === r
-                      ? "border-brand/50 bg-brand/10 text-foreground"
-                      : "border-border bg-card text-muted-foreground hover:border-muted-foreground/40",
+                    resolution === o.value
+                      ? "border-brand/50 bg-brand/10"
+                      : "border-border bg-card hover:border-muted-foreground/40",
                   )}
                 >
-                  {r}
-                  <span className="block text-[11px] font-normal text-muted-foreground">
-                    {r === "4K" ? "Video + frames" : "Video only"}
+                  <span className="flex items-center justify-between text-sm font-medium text-foreground">
+                    {o.title}
+                    <span className="font-mono text-[10px] text-muted-foreground">
+                      {o.value}
+                    </span>
+                  </span>
+                  <span className="mt-0.5 block text-[11px] font-normal text-muted-foreground">
+                    {o.hint}
                   </span>
                 </button>
               ))}
@@ -471,19 +536,31 @@ export function UploadFlow({ prefill }: { prefill?: Product }) {
               type="button"
               className="w-full"
               disabled={!canGenerate}
-              onClick={generate}
+              onClick={() => { void generate(); }}
             >
               <Sparkles aria-hidden="true" />
-              Generate 360° assets
+              {generating ? "Uploading…" : "Generate 360° assets"}
             </Button>
             {sim.creditsBalance === 0 && (
-              <p className="text-center text-xs text-destructive">
-                You&apos;re out of credits —{" "}
-                <Link href="/credits" className="underline underline-offset-2">
-                  buy more
-                </Link>{" "}
-                to keep rendering.
-              </p>
+              activeSimJob ? (
+                <p className="text-center text-xs text-muted-foreground">
+                  Render in progress —{" "}
+                  <Link
+                    href={`/products/${activeSimJob.productId}`}
+                    className="underline underline-offset-2"
+                  >
+                    check progress
+                  </Link>
+                </p>
+              ) : (
+                <p className="text-center text-xs text-destructive">
+                  You&apos;re out of credits —{" "}
+                  <Link href="/credits" className="underline underline-offset-2">
+                    buy more
+                  </Link>{" "}
+                  to keep rendering.
+                </p>
+              )
             )}
           </div>
         </CardContent>
