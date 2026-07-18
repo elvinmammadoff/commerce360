@@ -48,9 +48,9 @@ function backgroundFragment(background: string): string {
 
 /** Prompt for the FLUX normalize stage (clean studio product image). */
 export function normalizePrompt(background: string): string {
-  return `Professional product photography, ${backgroundFragment(
+  return `Remove the background from this product photograph. Keep the product itself completely unchanged — same exact shape, colors, labels, text, and every detail must be identical to the original. Only replace the background with: ${backgroundFragment(
     background,
-  )}, centered subject, no reflections, no distractions`;
+  )}. Do not alter, recreate, or reimagine the product in any way. The product must look exactly as in the original photo.`;
 }
 
 /** Prompt for the orbit render stage, framed for the detected category. */
