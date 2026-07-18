@@ -80,12 +80,8 @@ export function PipelineProgress({ job }: { job: GenerationJob }) {
                 >
                   <motion.div
                     className="h-full rounded-full bg-brand"
-                    initial={{ width: "8%" }}
-                    animate={{ width: ["8%", "92%"] }}
-                    transition={{
-                      duration: stage.simSeconds,
-                      ease: "linear",
-                    }}
+                    animate={{ width: `${Math.max(8, Math.min(92, job.progress ?? 8))}%` }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
                   />
                 </motion.div>
               )}

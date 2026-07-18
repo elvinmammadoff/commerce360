@@ -444,7 +444,7 @@ export function ProductDetailView({
                 <CardDescription>
                   {activeJob ? (
                     <>
-                      {getStage(activeJob.stage).label} · started{" "}
+                      {getStage(activeJob.stage).label} · queued{" "}
                       <RelativeTime iso={activeJob.createdAt} /> · typically
                       done in ~11 min
                     </>

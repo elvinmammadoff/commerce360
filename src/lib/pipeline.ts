@@ -28,8 +28,8 @@ export const PIPELINE_STAGES: StageDef[] = [
     id: "rendering",
     label: "Rendering orbit",
     description: "Generating the 360° camera path around the product",
-    engine: "Seedance 1.0",
-    typicalSeconds: 210,
+    engine: "Higgsfield DoP",
+    typicalSeconds: 540,
     simSeconds: 7,
   },
   {
