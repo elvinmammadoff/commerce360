@@ -72,15 +72,15 @@ export async function packageAssets(input: PackageInput): Promise<void> {
 
   const completedAt = new Date().toISOString();
   const assets = {
-    orbit_video_url: upscaledVideoUrl,
-    video_resolution: "4K",
-    video_duration_seconds: extract?.durationSeconds ?? 10,
-    video_size_mb: videoSizeMb,
-    frame_count: frameCount,
-    frame_resolution: frameResolution,
-    frame_urls: frameUrls,
-    package_size_mb: Math.round((videoSizeMb + (frameCount * 0.3)) * 10) / 10,
-    marketplace_set_size_mb: Math.round(frameCount * 0.3 * 10) / 10,
+    orbitVideoUrl: upscaledVideoUrl,
+    videoResolution: "4K",
+    videoDurationSeconds: extract?.durationSeconds ?? 10,
+    videoSizeMb: videoSizeMb,
+    frameCount: frameCount,
+    frameResolution: frameResolution,
+    frameUrls: frameUrls,
+    packageSizeMb: Math.round((videoSizeMb + (frameCount * 0.3)) * 10) / 10,
+    marketplaceSetSizeMb: Math.round(frameCount * 0.3 * 10) / 10,
   };
 
   const res = await workerFetch(`/api/products/${productId}`, {
