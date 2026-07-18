@@ -124,7 +124,7 @@ export async function uploadImageFromUrl(imageUrl: string): Promise<string> {
   const putRes = await fetch(upload_url, {
     method: "PUT",
     headers: { "Content-Type": contentType },
-    body: buffer,
+    body: new Blob([buffer as unknown as ArrayBuffer], { type: contentType }),
   });
   if (!putRes.ok) throw new Error(`Higgsfield S3 upload failed: ${putRes.status}`);
 
