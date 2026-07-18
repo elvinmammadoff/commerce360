@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
   const uploadsDir = join(process.cwd(), "public", "uploads");
   await mkdir(uploadsDir, { recursive: true });
   await writeFile(join(uploadsDir, filename), Buffer.from(await file.arrayBuffer()));
-  const imageUrl = `${APP_URL}/uploads/${filename}`;
+  const imageUrl = `${APP_URL}/api/uploads/${filename}`;
 
   // 2. Create draft product in Laravel
   const productRes = await laravelFetch("/api/products", token, {
