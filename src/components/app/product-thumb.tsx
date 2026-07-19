@@ -8,14 +8,13 @@ import {
   Loader2,
 } from "lucide-react";
 
-import { getVideoPoster } from "@/lib/media/video-frames";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/lib/types";
 
 /**
- * Product thumbnail: completed products show a canvas-captured first frame
- * of their orbit video; pipeline states show an honest placeholder instead
- * of fake imagery.
+ * Product thumbnail. Completed products display a frame from their orbit video
+ * using a native <video> element — no canvas, no CORS restriction. Works for
+ * both same-origin VPS-served videos and Higgsfield CDN URLs.
  */
 export function ProductThumb({
   product,
@@ -25,20 +24,7 @@ export function ProductThumb({
   className?: string;
 }) {
   const src = product.assets?.orbitVideoUrl;
-  const [poster, setPoster] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    if (!src) return;
-    let active = true;
-    getVideoPoster(src)
-      .then((url) => {
-        if (active) setPoster(url);
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, [src]);
+  const [visible, setVisible] = React.useState(false);
 
   return (
     <div
@@ -49,18 +35,25 @@ export function ProductThumb({
       )}
     >
       {src ? (
-        poster ? (
-          // Data URLs from canvas capture — next/image can't optimize these.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={poster}
-            alt={product.name}
-            className="size-full object-cover"
-            draggable={false}
+        <>
+          {!visible && <div className="absolute inset-0 animate-pulse bg-muted/60" />}
+          {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+          <video
+            src={src}
+            muted
+            playsInline
+            preload="metadata"
+            className={cn(
+              "size-full object-cover transition-opacity duration-200",
+              visible ? "opacity-100" : "opacity-0",
+            )}
+            style={{ pointerEvents: "none" }}
+            onLoadedMetadata={(e) => {
+              e.currentTarget.currentTime = 0.5;
+            }}
+            onSeeked={() => setVisible(true)}
           />
-        ) : (
-          <div className="size-full animate-pulse bg-muted/60" />
-        )
+        </>
       ) : product.status === "processing" ? (
         <Loader2 className="size-4 animate-spin text-brand" aria-hidden="true" />
       ) : product.status === "queued" ? (
