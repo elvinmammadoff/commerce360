@@ -39,33 +39,32 @@ async function cleanFrame(
   const imageBase64 = (await readFile(framePath)).toString("base64");
   const dataUrl = `data:image/jpeg;base64,${imageBase64}`;
 
-  let output!: string;
-  for (let attempt = 0; attempt < 4; attempt++) {
+  let lastErr!: Error;
+  for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      output = await replicate.run(modelRef as `${string}/${string}:${string}`, {
+      const output = await replicate.run(modelRef as `${string}/${string}:${string}`, {
         input: { image: dataUrl },
       }) as unknown as string;
-      break;
+
+      const res = await fetch(output);
+      if (!res.ok) throw new Error(`BG removal download failed: ${res.status}`);
+      const pngBuffer = Buffer.from(await res.arrayBuffer());
+
+      return sharp(pngBuffer)
+        .flatten({ background: color })
+        .jpeg({ quality: 92 })
+        .toBuffer();
     } catch (err) {
-      const msg = (err as Error).message ?? "";
-      if (attempt < 3 && msg.includes("429")) {
-        const match = msg.match(/"retry_after":(\d+)/);
-        const waitMs = (match ? parseInt(match[1], 10) : (attempt + 1) * 10) * 1000 + 1000;
-        await new Promise((r) => setTimeout(r, waitMs));
+      lastErr = err as Error;
+      if (lastErr.message?.includes("429") && attempt < 2) {
+        const match = lastErr.message.match(/"retry_after":(\d+)/);
+        await new Promise((r) => setTimeout(r, (match ? +match[1] : 15) * 1000));
         continue;
       }
-      throw err;
+      throw lastErr;
     }
   }
-
-  const res = await fetch(output);
-  if (!res.ok) throw new Error(`BG removal download failed: ${res.status}`);
-  const pngBuffer = Buffer.from(await res.arrayBuffer());
-
-  return sharp(pngBuffer)
-    .flatten({ background: color })
-    .jpeg({ quality: 92 })
-    .toBuffer();
+  throw lastErr;
 }
 
 export interface CleanVideoResult {
@@ -105,10 +104,11 @@ export async function cleanVideoBackground(
     const versionId = await resolveVersion(replicate, "cjwbw", "rembg");
     const modelRef = `cjwbw/rembg:${versionId}`;
 
-    // 1. Extract frames at 12fps (smooth enough for turntable orbit)
+    // 1. Extract at 4fps — 20 frames per 5-second orbit vs 60 at 12fps.
+    // Fewer Replicate calls, still enough angular coverage for a turntable spin.
     await execFileAsync("ffmpeg", [
       "-i", inputLocalPath,
-      "-vf", "fps=12,scale=1280:720",
+      "-vf", "fps=4,scale=1280:720",
       "-q:v", "2",
       join(framesDir, "frame_%04d.jpg"),
       "-y",
@@ -120,19 +120,21 @@ export async function cleanVideoBackground(
 
     if (frameFiles.length === 0) throw new Error("No frames extracted from video");
 
-    // 2. Process frames through BiRefNet, 2 concurrent to respect rate limits
-    const CONCURRENCY = 2;
-    for (let i = 0; i < frameFiles.length; i += CONCURRENCY) {
-      const batch = frameFiles.slice(i, i + CONCURRENCY);
-      await Promise.all(
-        batch.map(async (file) => {
-          const cleaned = await cleanFrame(join(framesDir, file), color, replicate, modelRef);
-          await writeFile(join(cleanDir, file), cleaned);
-        }),
-      );
+    // 2. Process frames sequentially, spacing calls ≥11s apart.
+    // Replicate throttled-account rate limit: 6 req/min (1 per 10s), burst=1.
+    // Sequential + 11s gap ensures we never hit burst limit without retry churn.
+    for (let i = 0; i < frameFiles.length; i++) {
+      const t0 = Date.now();
+      const cleaned = await cleanFrame(join(framesDir, frameFiles[i]), color, replicate, modelRef);
+      await writeFile(join(cleanDir, frameFiles[i]), cleaned);
+      // Skip gap after last frame
+      if (i < frameFiles.length - 1) {
+        const gap = 11_000 - (Date.now() - t0);
+        if (gap > 0) await new Promise((r) => setTimeout(r, gap));
+      }
     }
 
-    // 3. Re-encode to MP4
+    // 3. Re-encode to MP4 at 4fps (matches extracted frame rate)
     const outputPath = join(
       process.cwd(),
       "public",
@@ -141,7 +143,7 @@ export async function cleanVideoBackground(
       `${productId}-clean.mp4`,
     );
     await execFileAsync("ffmpeg", [
-      "-framerate", "12",
+      "-framerate", "4",
       "-i", join(cleanDir, "frame_%04d.jpg"),
       "-c:v", "libx264",
       "-crf", "22",
