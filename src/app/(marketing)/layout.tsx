@@ -1,12 +1,16 @@
+import { cookies } from "next/headers";
 import { Atmosphere } from "@/components/marketing/atmosphere";
 import { MarketingFooter } from "@/components/marketing/marketing-footer";
 import { MarketingNavbar } from "@/components/marketing/marketing-navbar";
 
-export default function MarketingLayout({
+export default async function MarketingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const store = await cookies();
+  const isLoggedIn = !!store.get("c360-token")?.value;
+
   return (
     <>
       <a
@@ -16,7 +20,7 @@ export default function MarketingLayout({
         Skip to content
       </a>
       <Atmosphere />
-      <MarketingNavbar />
+      <MarketingNavbar isLoggedIn={isLoggedIn} />
       <main id="content" className="relative overflow-x-clip">
         {children}
       </main>

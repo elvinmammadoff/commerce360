@@ -17,7 +17,7 @@ import {
 import { MARKETING_NAV } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
-export function MarketingNavbar() {
+export function MarketingNavbar({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   const [scrolled, setScrolled] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   const [hovered, setHovered] = React.useState<string | null>(null);
@@ -92,18 +92,32 @@ export function MarketingNavbar() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
-          <Button asChild variant="ghost" size="sm">
-            <Link href="/login">Sign in</Link>
-          </Button>
-          <Button
-            asChild
-            size="sm"
-            className="border-transparent bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] text-white shadow-[0_6px_20px_-6px_rgba(124,92,246,0.65)] hover:text-white hover:shadow-[0_8px_26px_-6px_rgba(124,92,246,0.85)]"
-          >
-            <Link href="/signup">
-              Start free <ArrowRight aria-hidden="true" />
-            </Link>
-          </Button>
+          {isLoggedIn ? (
+            <Button
+              asChild
+              size="sm"
+              className="border-transparent bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] text-white shadow-[0_6px_20px_-6px_rgba(124,92,246,0.65)] hover:text-white hover:shadow-[0_8px_26px_-6px_rgba(124,92,246,0.85)]"
+            >
+              <Link href="/dashboard">
+                Dashboard <ArrowRight aria-hidden="true" />
+              </Link>
+            </Button>
+          ) : (
+            <>
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/login">Sign in</Link>
+              </Button>
+              <Button
+                asChild
+                size="sm"
+                className="border-transparent bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] text-white shadow-[0_6px_20px_-6px_rgba(124,92,246,0.65)] hover:text-white hover:shadow-[0_8px_26px_-6px_rgba(124,92,246,0.85)]"
+              >
+                <Link href="/signup">
+                  Start free <ArrowRight aria-hidden="true" />
+                </Link>
+              </Button>
+            </>
+          )}
         </div>
 
         <Sheet open={open} onOpenChange={setOpen}>
@@ -136,19 +150,32 @@ export function MarketingNavbar() {
               ))}
             </nav>
             <div className="mt-auto flex flex-col gap-2 p-4">
-              <Button asChild variant="outline">
-                <Link href="/login" onClick={() => setOpen(false)}>
-                  Sign in
-                </Link>
-              </Button>
-              <Button
-                asChild
-                className="border-transparent bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] text-white hover:text-white"
-              >
-                <Link href="/signup" onClick={() => setOpen(false)}>
-                  Start free
-                </Link>
-              </Button>
+              {isLoggedIn ? (
+                <Button
+                  asChild
+                  className="border-transparent bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] text-white hover:text-white"
+                >
+                  <Link href="/dashboard" onClick={() => setOpen(false)}>
+                    Dashboard
+                  </Link>
+                </Button>
+              ) : (
+                <>
+                  <Button asChild variant="outline">
+                    <Link href="/login" onClick={() => setOpen(false)}>
+                      Sign in
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    className="border-transparent bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] text-white hover:text-white"
+                  >
+                    <Link href="/signup" onClick={() => setOpen(false)}>
+                      Start free
+                    </Link>
+                  </Button>
+                </>
+              )}
             </div>
           </SheetContent>
         </Sheet>
