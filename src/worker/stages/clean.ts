@@ -32,7 +32,7 @@ async function cleanFrame(
   const dataUrl = `data:image/jpeg;base64,${imageBase64}`;
 
   // BiRefNet returns a transparent PNG (product cutout)
-  const output = await replicate.run("briaai/rmbg-2.0", {
+  const output = await replicate.run("851-labs/background-remover", {
     input: { image: dataUrl },
   }) as unknown as string;
 
