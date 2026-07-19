@@ -237,7 +237,9 @@ export function UploadFlow({ prefill, serverCreditsBalance = 0 }: { prefill?: Pr
     setSource({
       previewUrl: URL.createObjectURL(file),
       fileName: file.name,
-      sizeLabel: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+      sizeLabel: file.size < 1024 * 1024
+        ? `${Math.round(file.size / 1024)} KB`
+        : `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
       isObjectUrl: true,
     });
     if (!name) {
