@@ -53,7 +53,9 @@ export function ProductsTable({ initial }: { initial: Product[] }) {
   const [query, setQuery] = React.useState("");
   const [status, setStatus] = React.useState<ProductStatus | "all">("all");
 
-  const all = [...sim.products, ...initial];
+  const all = [...sim.products, ...initial].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
   const filtered = all.filter((product) => {
     const matchesQuery =
       query.trim() === "" ||
