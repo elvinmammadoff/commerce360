@@ -2,12 +2,20 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronDown, Menu } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronUp, LayoutDashboard, LogOut, Menu } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { CurrentUser } from "@/lib/types";
 import {
   Sheet,
@@ -18,6 +26,7 @@ import {
 } from "@/components/ui/sheet";
 import { MARKETING_NAV } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
+import { signOut } from "@/lib/auth-actions";
 
 export function MarketingNavbar({
   isLoggedIn = false,
@@ -28,6 +37,7 @@ export function MarketingNavbar({
 }) {
   const [scrolled, setScrolled] = React.useState(false);
   const [open, setOpen] = React.useState(false);
+  const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const [hovered, setHovered] = React.useState<string | null>(null);
   const reduceMotion = useReducedMotion();
 
@@ -47,7 +57,6 @@ export function MarketingNavbar({
           : "border-b border-transparent bg-transparent",
       )}
     >
-      {/* Hairline brand glow that fades in with the scrolled chrome. */}
       <div
         aria-hidden="true"
         className={cn(
@@ -100,29 +109,44 @@ export function MarketingNavbar({
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
-          {isLoggedIn ? (
-            <>
-              {user && (
-                <Link href="/dashboard" className="flex items-center gap-2 rounded-lg px-2 py-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
+          {isLoggedIn && user ? (
+            <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50">
                   <Avatar className="size-7">
                     {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.name} />}
                     <AvatarFallback className="bg-secondary text-xs font-medium">
                       {user.initials}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="max-w-[120px] truncate">{user.name}</span>
-                </Link>
-              )}
-              <Button
-                asChild
-                size="sm"
-                className="border-transparent bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] text-white shadow-[0_6px_20px_-6px_rgba(124,92,246,0.65)] hover:text-white hover:shadow-[0_8px_26px_-6px_rgba(124,92,246,0.85)]"
-              >
-                <Link href="/dashboard">
-                  Dashboard <ArrowRight aria-hidden="true" />
-                </Link>
-              </Button>
-            </>
+                  <span className="max-w-[120px] truncate font-medium text-foreground">{user.name}</span>
+                  {dropdownOpen
+                    ? <ChevronUp className="size-3.5 opacity-60" aria-hidden="true" />
+                    : <ChevronDown className="size-3.5 opacity-60" aria-hidden="true" />
+                  }
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel className="font-normal">
+                  <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard" className="flex items-center gap-2">
+                    <LayoutDashboard className="size-4" aria-hidden="true" />
+                    Dashboard
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onSelect={() => void signOut()}
+                >
+                  <LogOut className="size-4" aria-hidden="true" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <>
               <Button asChild variant="ghost" size="sm">
@@ -171,29 +195,27 @@ export function MarketingNavbar({
               ))}
             </nav>
             <div className="mt-auto flex flex-col gap-2 p-4">
-              {isLoggedIn ? (
+              {isLoggedIn && user ? (
                 <>
-                  {user && (
-                    <div className="flex items-center gap-3 rounded-lg border border-border/50 px-3 py-2">
-                      <Avatar className="size-8">
-                        {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.name} />}
-                        <AvatarFallback className="bg-secondary text-xs font-medium">
-                          {user.initials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{user.name}</p>
-                        <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-                      </div>
+                  <div className="flex items-center gap-3 rounded-lg border border-border/50 px-3 py-2">
+                    <Avatar className="size-8">
+                      {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.name} />}
+                      <AvatarFallback className="bg-secondary text-xs font-medium">
+                        {user.initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{user.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                     </div>
-                  )}
-                  <Button
-                    asChild
-                    className="border-transparent bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] text-white hover:text-white"
-                  >
+                  </div>
+                  <Button asChild className="border-transparent bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] text-white hover:text-white">
                     <Link href="/dashboard" onClick={() => setOpen(false)}>
                       Dashboard
                     </Link>
+                  </Button>
+                  <Button variant="outline" onClick={() => void signOut()}>
+                    Sign out
                   </Button>
                 </>
               ) : (
