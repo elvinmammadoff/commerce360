@@ -22,6 +22,7 @@ import { ShareDialog } from "@/components/app/products/share-dialog";
 import { TurntableViewer } from "@/components/app/viewer/turntable-viewer";
 import { EmptyState } from "@/components/shared/empty-state";
 import { categoryLabel } from "@/lib/detect-category";
+import { toUtcIso } from "@/lib/data";
 import { RelativeTime } from "@/components/shared/relative-time";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -186,8 +187,8 @@ export function ProductDetailView({
               stage: found.stage as GenerationJob["stage"],
               progress: (found.progress as number) ?? 0,
               settings: (found.settings as string) ?? "",
-              createdAt: found.created_at as string,
-              finishedAt: (found.finished_at as string | null) ?? null,
+              createdAt: toUtcIso(found.created_at as string),
+              finishedAt: found.finished_at ? toUtcIso(found.finished_at as string) : null,
               durationSeconds: (found.duration_seconds as number | null) ?? null,
               creditsUsed: (found.credits_used as number) ?? 1,
               error: (found.error as string | undefined) ?? undefined,
