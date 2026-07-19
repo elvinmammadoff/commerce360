@@ -55,7 +55,5 @@ export function normalizePrompt(background: string): string {
 
 /** Prompt for the orbit render stage, framed for the detected category. */
 export function orbitPrompt(category: Category, background: string): string {
-  return `Smooth seamless 360-degree orbit around the product, ${CAMERA[category]}, ${backgroundFragment(
-    background,
-  )}, cinematic lighting, slow even rotation`;
+  return `Smooth 360-degree camera orbit around the product. The product remains perfectly stationary. ${CAMERA[category]}. ${backgroundFragment(background)}. Professional product photography lighting, soft diffused light. Constant camera height. Constant focal length. No zoom. No deformation. No morphing. 8-second seamless orbit.`;
 }
