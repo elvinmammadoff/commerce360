@@ -34,8 +34,8 @@ async function processRenderJob(job: Job<RenderJobData>) {
       (await detectCategory(imageUrl)) ?? job.data.category ?? "general";
     await patchProduct(productId, { category: detected });
 
-    // Stage 1: Normalize — remove.bg strips background, places product on studio color.
-    // Falls back to original image if remove.bg is unavailable or quota exceeded.
+    // Stage 1: Normalize — Replicate 851-labs/background-remover strips background,
+    // places product on studio color. Falls back to original image on any error.
     await patchJob(jobId, { stage: "normalizing", progress: 5 });
     const normalizedUrl = await normalizeImage(imageUrl, background, (pct) =>
       patchJob(jobId, { stage: "normalizing", progress: 5 + Math.round(pct * 0.9) }),
