@@ -1,83 +1,81 @@
-import { writeFile, mkdir } from "fs/promises";
+import { writeFile, readFile, mkdir } from "fs/promises";
 import { join } from "path";
 import { randomUUID } from "crypto";
+import Replicate from "replicate";
+import sharp from "sharp";
 
-const REMOVEBG_API = "https://api.remove.bg/v1.0/removebg";
+const MODEL_REF = "851-labs/background-remover:a029dff38972b5fda4ec5d75d7d1cd25aeff621d2cf4946a41055d7db66b80bc";
 
-/** Map background label → solid hex for remove.bg bg_color param */
-function bgHex(background: string): string {
+function bgRgb(background: string): { r: number; g: number; b: number } {
   const key = background.trim().toLowerCase();
-  if (key.includes("charcoal") || key.includes("dark") || key.includes("black")) return "#2a2a2a";
-  if (key.includes("warm")) return "#f5ede0";
-  if (key.includes("marble")) return "#f0efec";
-  if (key.includes("gradient")) return "#eef1f6";
-  return "#ffffff"; // Studio white default
+  if (key.includes("charcoal") || key.includes("dark") || key.includes("black")) return { r: 42, g: 42, b: 42 };
+  if (key.includes("warm")) return { r: 245, g: 237, b: 224 };
+  if (key.includes("marble")) return { r: 240, g: 239, b: 236 };
+  if (key.includes("gradient")) return { r: 238, g: 241, b: 246 };
+  return { r: 255, g: 255, b: 255 };
 }
 
 /**
- * Stage 1 — Remove background from source image via remove.bg API.
- * Places the product on a solid studio color matching the chosen background.
- * Returns a URL to the processed image (saved to public/uploads/).
+ * Stage 1 — Remove background from source image via Replicate 851-labs/background-remover.
+ * Places product on solid studio color, saves to public/uploads/, returns served URL.
  */
 export async function normalizeImage(
   imageUrl: string,
   background: string,
   onProgress?: (pct: number) => void,
 ): Promise<string> {
-  const apiKey = process.env.REMOVEBG_API_KEY;
-  if (!apiKey) {
-    console.warn("[normalize] REMOVEBG_API_KEY not set — skipping background removal");
+  const apiToken = process.env.REPLICATE_API_TOKEN;
+  if (!apiToken) {
+    console.warn("[normalize] REPLICATE_API_TOKEN not set — skipping background removal");
     return imageUrl;
   }
 
   onProgress?.(10);
 
-  // Read from disk to avoid VPS hairpin NAT
-  let imageData: Buffer;
-  let contentType: string;
+  const replicate = new Replicate({ auth: apiToken });
+
+  // Read from disk to avoid VPS hairpin NAT; fall back to fetch
+  let imageBase64: string;
+  let mimeType: string;
   try {
-    const { readFile } = await import("fs/promises");
     const filename = new URL(imageUrl).pathname.split("/").pop()!;
     const ext = filename.split(".").pop()?.toLowerCase() ?? "jpeg";
-    contentType = ext === "webp" ? "image/webp" : ext === "png" ? "image/png" : "image/jpeg";
-    imageData = await readFile(join(process.cwd(), "public", "uploads", filename));
+    mimeType = ext === "webp" ? "image/webp" : ext === "png" ? "image/png" : "image/jpeg";
+    const buf = await readFile(join(process.cwd(), "public", "uploads", filename));
+    imageBase64 = buf.toString("base64");
   } catch {
     const res = await fetch(imageUrl);
     if (!res.ok) throw new Error(`Cannot fetch source image: ${res.status}`);
-    imageData = Buffer.from(await res.arrayBuffer());
-    contentType = res.headers.get("content-type") ?? "image/jpeg";
+    mimeType = res.headers.get("content-type") ?? "image/jpeg";
+    imageBase64 = Buffer.from(await res.arrayBuffer()).toString("base64");
   }
 
   onProgress?.(30);
 
-  const formData = new FormData();
-  formData.append("image_file", new Blob([imageData as unknown as ArrayBuffer], { type: contentType }), "image.jpg");
-  formData.append("size", "auto");
-  formData.append("bg_color", bgHex(background));
-  formData.append("format", "jpg");
+  const dataUrl = `data:${mimeType};base64,${imageBase64}`;
+  const output = await replicate.run(MODEL_REF as `${string}/${string}:${string}`, {
+    input: { image: dataUrl },
+  }) as unknown as string;
 
-  const res = await fetch(REMOVEBG_API, {
-    method: "POST",
-    headers: { "X-Api-Key": apiKey },
-    body: formData,
-  });
+  onProgress?.(75);
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`remove.bg API → ${res.status}: ${text}`);
-  }
+  const res = await fetch(output);
+  if (!res.ok) throw new Error(`Replicate output download failed: ${res.status}`);
+  const pngBuffer = Buffer.from(await res.arrayBuffer());
 
-  onProgress?.(80);
+  const color = bgRgb(background);
+  const jpegBuffer = await sharp(pngBuffer)
+    .flatten({ background: color })
+    .jpeg({ quality: 92 })
+    .toBuffer();
 
-  const resultBuffer = Buffer.from(await res.arrayBuffer());
   const outFilename = `normalized-${randomUUID()}.jpg`;
   const uploadsDir = join(process.cwd(), "public", "uploads");
   await mkdir(uploadsDir, { recursive: true });
-  await writeFile(join(uploadsDir, outFilename), resultBuffer);
+  await writeFile(join(uploadsDir, outFilename), jpegBuffer);
 
   const APP_URL = (process.env.NEXT_PUBLIC_SHARE_URL ?? "https://orbittify.com").replace(/\/$/, "");
-  const normalizedUrl = `${APP_URL}/api/uploads/${outFilename}`;
 
   onProgress?.(100);
-  return normalizedUrl;
+  return `${APP_URL}/api/uploads/${outFilename}`;
 }
