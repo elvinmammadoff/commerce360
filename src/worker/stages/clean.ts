@@ -19,6 +19,13 @@ function bgRgb(background: string): { r: number; g: number; b: number } {
   return { r: 255, g: 255, b: 255 };
 }
 
+async function resolveVersion(replicate: Replicate, owner: string, name: string): Promise<string> {
+  const model = await replicate.models.get(owner, name);
+  const id = (model as { latest_version?: { id?: string } }).latest_version?.id;
+  if (!id) throw new Error(`Cannot resolve ${owner}/${name} latest version`);
+  return id;
+}
+
 /**
  * Remove background from a single frame via Replicate BiRefNet.
  * Returns a PNG buffer with the product on a solid background.
@@ -27,21 +34,19 @@ async function cleanFrame(
   framePath: string,
   color: { r: number; g: number; b: number },
   replicate: Replicate,
+  modelRef: string,
 ): Promise<Buffer> {
   const imageBase64 = (await readFile(framePath)).toString("base64");
   const dataUrl = `data:image/jpeg;base64,${imageBase64}`;
 
-  // BiRefNet returns a transparent PNG (product cutout)
-  const output = await replicate.run("851-labs/background-remover", {
+  const output = await replicate.run(modelRef as `${string}/${string}:${string}`, {
     input: { image: dataUrl },
   }) as unknown as string;
 
-  // Download the result PNG
   const res = await fetch(output);
-  if (!res.ok) throw new Error(`BiRefNet download failed: ${res.status}`);
+  if (!res.ok) throw new Error(`BG removal download failed: ${res.status}`);
   const pngBuffer = Buffer.from(await res.arrayBuffer());
 
-  // Composite product on solid background color
   return sharp(pngBuffer)
     .flatten({ background: color })
     .jpeg({ quality: 92 })
@@ -81,6 +86,10 @@ export async function cleanVideoBackground(
     await mkdir(framesDir, { recursive: true });
     await mkdir(cleanDir, { recursive: true });
 
+    // Resolve model version once (avoids per-frame API call)
+    const versionId = await resolveVersion(replicate, "lucataco", "remove-bg");
+    const modelRef = `lucataco/remove-bg:${versionId}`;
+
     // 1. Extract frames at 12fps (smooth enough for turntable orbit)
     await execFileAsync("ffmpeg", [
       "-i", inputLocalPath,
@@ -102,7 +111,7 @@ export async function cleanVideoBackground(
       const batch = frameFiles.slice(i, i + CONCURRENCY);
       await Promise.all(
         batch.map(async (file) => {
-          const cleaned = await cleanFrame(join(framesDir, file), color, replicate);
+          const cleaned = await cleanFrame(join(framesDir, file), color, replicate, modelRef);
           await writeFile(join(cleanDir, file), cleaned);
         }),
       );
