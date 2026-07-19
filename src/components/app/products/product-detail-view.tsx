@@ -22,7 +22,12 @@ import { ShareDialog } from "@/components/app/products/share-dialog";
 import { TurntableViewer } from "@/components/app/viewer/turntable-viewer";
 import { EmptyState } from "@/components/shared/empty-state";
 import { categoryLabel } from "@/lib/detect-category";
-import { toUtcIso } from "@/lib/data";
+
+function toUtcIso(ts: string): string {
+  if (!ts) return ts;
+  if (ts.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(ts)) return ts;
+  return ts.replace(" ", "T") + "Z";
+}
 import { RelativeTime } from "@/components/shared/relative-time";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";

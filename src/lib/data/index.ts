@@ -133,7 +133,7 @@ type RawLedgerEntry = {
  * browsers parse them as LOCAL time, producing a UTC-offset error (e.g. 4h
  * in UTC+4). Append Z when no timezone info is present.
  */
-export function toUtcIso(ts: string): string {
+function toUtcIso(ts: string): string {
   if (!ts) return ts;
   if (ts.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(ts)) return ts;
   return ts.replace(" ", "T") + "Z";
