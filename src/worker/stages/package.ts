@@ -25,28 +25,24 @@ async function headSizeMb(url: string): Promise<number> {
 }
 
 /**
- * Upload a single frame file to the product's asset storage via the Laravel API.
- * Returns the hosted URL for that frame.
+ * Copy a frame file into public/uploads/frames/{productId}/ and return its URL.
+ * Avoids the need for a Laravel /api/assets/frames endpoint.
  */
 async function uploadFrame(
   productId: string,
   framesDir: string,
   filename: string,
 ): Promise<string> {
-  const { readFile } = await import("fs/promises");
-  const buffer = await readFile(`${framesDir}/${filename}`);
-  const formData = new FormData();
-  formData.append("product_id", productId);
-  formData.append("filename", filename);
-  formData.append("file", new Blob([buffer], { type: "image/jpeg" }), filename);
+  const { readFile, writeFile, mkdir } = await import("fs/promises");
+  const { join } = await import("path");
 
-  const res = await workerFetch("/api/assets/frames", {
-    method: "POST",
-    body: formData,
-  });
-  if (!res.ok) throw new Error(`Frame upload ${filename} → ${res.status}`);
-  const { url } = (await res.json()) as { url: string };
-  return url;
+  const buffer = await readFile(`${framesDir}/${filename}`);
+  const destDir = join(process.cwd(), "public", "uploads", "frames", productId);
+  await mkdir(destDir, { recursive: true });
+  await writeFile(join(destDir, filename), buffer);
+
+  const APP_URL = (process.env.NEXT_PUBLIC_SHARE_URL ?? "https://orbittify.com").replace(/\/$/, "");
+  return `${APP_URL}/api/uploads/frames/${productId}/${filename}`;
 }
 
 /**
