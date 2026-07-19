@@ -6,6 +6,7 @@ import { normalizeImage } from "./stages/normalize";
 import { renderOrbit360 } from "./stages/render";
 import { upscaleOrbitVideo } from "./stages/upscale";
 import { saveOrbitVideo } from "./stages/download";
+import { cleanVideoBackground } from "./stages/clean";
 import { extractFrames } from "./stages/extract";
 import { packageAssets } from "./stages/package";
 import type { Category } from "./presets";
@@ -59,13 +60,31 @@ async function processRenderJob(job: Job<RenderJobData>) {
       console.warn(`[worker] video download to disk failed, using CDN URL: ${(err as Error).message}`);
       return null;
     });
-    const upscaledVideoUrl = saved?.servedUrl ?? orbit.url;
-    const videoLocalPath = saved?.localPath ?? orbit.localPath;
+    // Stage 3b: Clean — remove hallucinated studio equipment frame-by-frame.
+    // Requires REPLICATE_API_TOKEN; skips gracefully when unset.
+    let finalLocalPath = saved?.localPath ?? orbit.localPath;
+    let upscaledVideoUrl = saved?.servedUrl ?? orbit.url;
+
+    if (saved?.localPath && process.env.REPLICATE_API_TOKEN) {
+      await patchJob(jobId, { stage: "upscaling", progress: 40 });
+      const cleaned = await cleanVideoBackground(
+        saved.localPath,
+        productId,
+        background,
+      ).catch((err) => {
+        console.warn(`[worker] BG clean skipped: ${(err as Error).message}`);
+        return null;
+      });
+      if (cleaned) {
+        finalLocalPath = cleaned.localPath;
+        upscaledVideoUrl = cleaned.servedUrl;
+      }
+    }
     await patchJob(jobId, { stage: "upscaling", progress: 100 });
 
     // Stage 4: Extract — 72 stills at 5° intervals via ffmpeg (optional)
     await patchJob(jobId, { stage: "extracting", progress: 5 });
-    const extract = await extractFrames(videoLocalPath ?? upscaledVideoUrl).catch((err) => {
+    const extract = await extractFrames(finalLocalPath ?? upscaledVideoUrl).catch((err) => {
       // ffmpeg not available or extraction failed — log and continue without frames
       console.warn(`[worker] frame extraction skipped: ${(err as Error).message}`);
       return null;
