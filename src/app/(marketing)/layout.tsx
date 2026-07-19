@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { Atmosphere } from "@/components/marketing/atmosphere";
 import { MarketingFooter } from "@/components/marketing/marketing-footer";
 import { MarketingNavbar } from "@/components/marketing/marketing-navbar";
+import { getCurrentUser } from "@/lib/data";
 
 export default async function MarketingLayout({
   children,
@@ -10,6 +11,10 @@ export default async function MarketingLayout({
 }) {
   const store = await cookies();
   const isLoggedIn = !!store.get("c360-token")?.value;
+
+  const user = isLoggedIn
+    ? await getCurrentUser().catch(() => null)
+    : null;
 
   return (
     <>
@@ -20,7 +25,7 @@ export default async function MarketingLayout({
         Skip to content
       </a>
       <Atmosphere />
-      <MarketingNavbar isLoggedIn={isLoggedIn} />
+      <MarketingNavbar isLoggedIn={isLoggedIn} user={user} />
       <main id="content" className="relative overflow-x-clip">
         {children}
       </main>

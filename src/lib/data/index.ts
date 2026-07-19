@@ -67,6 +67,7 @@ type RawUser = {
   email: string;
   role: string;
   title?: string | null;
+  avatar_url?: string | null;
 };
 
 type RawWorkspace = {
@@ -158,6 +159,7 @@ function mapUser(u: RawUser): CurrentUser {
     initials,
     role: "owner" as TeamRole,
     appRole: (u.role === "admin" ? "admin" : "customer") as AppRole,
+    avatarUrl: u.avatar_url ?? undefined,
   };
 }
 

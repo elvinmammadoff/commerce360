@@ -211,6 +211,8 @@ export interface CurrentUser {
   role: TeamRole;
   /** Platform role — drives access to the internal admin console. */
   appRole: AppRole;
+  /** Google profile photo URL (may be absent for email/password accounts). */
+  avatarUrl?: string;
 }
 
 export type TeamRole = "owner" | "admin" | "member";

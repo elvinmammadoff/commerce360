@@ -7,6 +7,8 @@ import { motion, useReducedMotion } from "motion/react";
 
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import type { CurrentUser } from "@/lib/types";
 import {
   Sheet,
   SheetContent,
@@ -17,7 +19,13 @@ import {
 import { MARKETING_NAV } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
-export function MarketingNavbar({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
+export function MarketingNavbar({
+  isLoggedIn = false,
+  user = null,
+}: {
+  isLoggedIn?: boolean;
+  user?: CurrentUser | null;
+}) {
   const [scrolled, setScrolled] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   const [hovered, setHovered] = React.useState<string | null>(null);
@@ -93,15 +101,28 @@ export function MarketingNavbar({ isLoggedIn = false }: { isLoggedIn?: boolean }
 
         <div className="hidden items-center gap-2 md:flex">
           {isLoggedIn ? (
-            <Button
-              asChild
-              size="sm"
-              className="border-transparent bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] text-white shadow-[0_6px_20px_-6px_rgba(124,92,246,0.65)] hover:text-white hover:shadow-[0_8px_26px_-6px_rgba(124,92,246,0.85)]"
-            >
-              <Link href="/dashboard">
-                Dashboard <ArrowRight aria-hidden="true" />
-              </Link>
-            </Button>
+            <>
+              {user && (
+                <Link href="/dashboard" className="flex items-center gap-2 rounded-lg px-2 py-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
+                  <Avatar className="size-7">
+                    {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.name} />}
+                    <AvatarFallback className="bg-secondary text-xs font-medium">
+                      {user.initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="max-w-[120px] truncate">{user.name}</span>
+                </Link>
+              )}
+              <Button
+                asChild
+                size="sm"
+                className="border-transparent bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] text-white shadow-[0_6px_20px_-6px_rgba(124,92,246,0.65)] hover:text-white hover:shadow-[0_8px_26px_-6px_rgba(124,92,246,0.85)]"
+              >
+                <Link href="/dashboard">
+                  Dashboard <ArrowRight aria-hidden="true" />
+                </Link>
+              </Button>
+            </>
           ) : (
             <>
               <Button asChild variant="ghost" size="sm">
@@ -151,14 +172,30 @@ export function MarketingNavbar({ isLoggedIn = false }: { isLoggedIn?: boolean }
             </nav>
             <div className="mt-auto flex flex-col gap-2 p-4">
               {isLoggedIn ? (
-                <Button
-                  asChild
-                  className="border-transparent bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] text-white hover:text-white"
-                >
-                  <Link href="/dashboard" onClick={() => setOpen(false)}>
-                    Dashboard
-                  </Link>
-                </Button>
+                <>
+                  {user && (
+                    <div className="flex items-center gap-3 rounded-lg border border-border/50 px-3 py-2">
+                      <Avatar className="size-8">
+                        {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.name} />}
+                        <AvatarFallback className="bg-secondary text-xs font-medium">
+                          {user.initials}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{user.name}</p>
+                        <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                      </div>
+                    </div>
+                  )}
+                  <Button
+                    asChild
+                    className="border-transparent bg-linear-to-r from-[#5B8CFF] to-[#8B5CF6] text-white hover:text-white"
+                  >
+                    <Link href="/dashboard" onClick={() => setOpen(false)}>
+                      Dashboard
+                    </Link>
+                  </Button>
+                </>
               ) : (
                 <>
                   <Button asChild variant="outline">

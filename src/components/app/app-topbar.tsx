@@ -18,7 +18,7 @@ import { CommandMenu } from "@/components/app/command-menu";
 import { NotificationsPopover } from "@/components/app/notifications-popover";
 import { SidebarCredits, SidebarNav } from "@/components/app/app-sidebar";
 import { Logo } from "@/components/shared/logo";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -106,6 +106,7 @@ export function AppTopbar({
             aria-label="Account menu"
           >
             <Avatar className="size-7">
+              {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.name} />}
               <AvatarFallback className="bg-secondary text-xs font-medium">
                 {user.initials}
               </AvatarFallback>
