@@ -1,3 +1,18 @@
+const { execSync } = require("child_process");
+
+function readEnvLocal() {
+  try {
+    const out = execSync('grep -v "^#" /var/www/commerce360/.env.local 2>/dev/null || true').toString();
+    return Object.fromEntries(
+      out.split("\n")
+        .filter((l) => l.includes("="))
+        .map((l) => { const i = l.indexOf("="); return [l.slice(0, i).trim(), l.slice(i + 1).trim()]; }),
+    );
+  } catch { return {}; }
+}
+
+const envLocal = readEnvLocal();
+
 /** @type {import('pm2').ProcessDescription[]} */
 module.exports = {
   apps: [
@@ -22,7 +37,8 @@ module.exports = {
         PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
         REDIS_URL: "redis://127.0.0.1:6379",
         API_URL: "https://api.orbittify.com",
-        API_SERVICE_TOKEN: process.env.API_SERVICE_TOKEN ?? "",
+        API_SERVICE_TOKEN: envLocal.API_SERVICE_TOKEN ?? process.env.API_SERVICE_TOKEN ?? "",
+        REPLICATE_API_TOKEN: envLocal.REPLICATE_API_TOKEN ?? process.env.REPLICATE_API_TOKEN ?? "",
       },
     },
   ],
