@@ -4,6 +4,7 @@ const VALID: Category[] = [
   "accessories",
   "electronics",
   "fashion",
+  "footwear",
   "furniture",
   "food_beverage",
   "general",

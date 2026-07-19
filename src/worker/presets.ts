@@ -1,64 +1,96 @@
 /**
  * Category → camera framing and background → lighting maps.
- *
- * The detected product category drives the orbit camera (elevation + arc) so
- * a chair is shot at eye level while a table is shot angled down. Background
- * choice drives the studio lighting/surface described to both the normalize
- * and render prompts.
  */
 
 export type Category =
   | "accessories"
   | "electronics"
   | "fashion"
+  | "footwear"
   | "furniture"
   | "food_beverage"
   | "general";
 
-/** Per-category camera framing fragment injected into the orbit prompt. */
+/**
+ * Per-category camera framing fragment.
+ * All descriptions assume the product sits on a flat surface — even if the
+ * source photo shows it hanging. The orbit is always horizontal.
+ */
 const CAMERA: Record<Category, string> = {
   accessories:
-    "camera at product mid-height, tight 360-degree orbit, subject fills frame, fine detail visible",
+    "camera positioned at product mid-height, moves in a tight horizontal circle around the product",
   electronics:
-    "camera elevated 20 degrees above, clean tight 360-degree arc, product centered, all sides visible",
+    "camera positioned slightly above center, moves in a clean horizontal circle showing all panel faces",
   fashion:
-    "camera at product mid-height, wide 360-degree arc, full garment or item visible",
+    "camera at product center-height, moves in a wide horizontal arc revealing front, sides, and back",
+  footwear:
+    "camera at shoe-height (low, just above surface level), moves in a tight horizontal circle around the shoe — side profile, toe, heel, and opposite side all visible",
   furniture:
-    "camera at mid-height eye-level, wide sweeping 360-degree arc, entire piece in frame",
+    "camera at eye-level mid-height, moves in a wide horizontal circle showing all faces and angles of the piece",
   food_beverage:
-    "camera at label-height, tight 360-degree rotation, front label and packaging clearly visible",
+    "camera at label-height, moves in a tight horizontal circle keeping the label front visible, front and back panels shown",
   general:
-    "camera at mid-height, smooth 360-degree orbit, subject centered, full product in frame",
+    "camera at product center-height, moves in a smooth horizontal circle around the product showing all sides",
 };
 
 /** Background label → studio surface + lighting fragment. */
 function backgroundFragment(background: string): string {
   const key = background.trim().toLowerCase();
   if (key.includes("warm"))
-    return "warm off-white studio backdrop, soft golden key light";
+    return "warm off-white studio surface, soft golden key light from upper-left";
   if (key.includes("gradient"))
-    return "soft neutral gradient studio backdrop, smooth diffused lighting";
+    return "soft neutral gradient studio surface, smooth diffused lighting from above";
   if (key.includes("marble"))
     return "polished white marble surface with subtle grey veining, soft studio lighting";
   if (key.includes("charcoal") || key.includes("dark") || key.includes("black"))
-    return "dark charcoal studio backdrop, dramatic low-key lighting with soft rim light";
-  // Default: studio white
-  return "pure white studio background, soft even shadowless lighting";
+    return "dark charcoal studio surface, dramatic low-key lighting with soft rim light";
+  return "pure white studio surface, soft even shadowless lighting from above";
 }
 
 /** Prompt for the FLUX normalize stage (clean studio product image). */
 export function normalizePrompt(background: string): string {
-  return `Remove the background from this product photograph. Keep the product itself completely unchanged — same exact shape, colors, labels, text, and every detail must be identical to the original. Only replace the background with: ${backgroundFragment(
-    background,
-  )}. Do not alter, recreate, or reimagine the product in any way. The product must look exactly as in the original photo.`;
+  return `Remove the background from this product photograph. Keep the product itself completely unchanged — same exact shape, colors, labels, text, and every detail must be identical to the original. Only replace the background with: ${backgroundFragment(background)}. Do not alter, recreate, or reimagine the product in any way. The product must look exactly as in the original photo.`;
 }
 
-/** Prompt for the orbit render stage, framed for the detected category. */
+/**
+ * Prompt for the orbit render stage.
+ *
+ * Key constraints enforced:
+ * - Camera moves in the HORIZONTAL plane only (no vertical arc, no tilt)
+ * - Product is on a flat surface — DoP must not treat it as hanging
+ * - No wires, rigs, or studio equipment
+ * - Product appearance unchanged from source image
+ */
 export function orbitPrompt(category: Category, background: string): string {
-  return `Smooth clockwise camera orbit around the product shown in the source image. The product must appear exactly as in the source image — same exact shape, same closed/sealed configuration, same colors, same labels, same every detail. Do not open, uncap, extend, or alter the product in any way. Do not reimagine or reinterpret the product. The product is stationary; only the camera moves. ${CAMERA[category]}. ${backgroundFragment(background)}. Professional product photography lighting, soft diffused light. Constant camera height. Constant focal length. No zoom. No deformation. No morphing. No edge artifacts. No shadows bleeding off the edge of the frame. No plants. No flowers. No props. No decorative elements. No people. Nothing except the product and the background. 8-second smooth motion.`;
+  return [
+    "Professional product photography. Smooth camera orbit.",
+    "The product sits on a flat studio surface and is completely stationary.",
+    "CAMERA MOVEMENT: the camera travels in a horizontal circle around the product at constant height — like a turntable viewed from the side.",
+    "The camera moves strictly in the horizontal plane. No vertical movement. No camera tilt. No zoom. Constant focal length. Constant height.",
+    CAMERA[category] + ".",
+    backgroundFragment(background) + ".",
+    "The product appears exactly as in the source image — identical shape, colors, labels, texture, and all details. Do not alter, open, or reimagine the product.",
+    "STRICTLY FORBIDDEN: wires, strings, suspension cables, hanging apparatus, camera rigs, mounting hardware, tripods, studio clamps, ball-head mounts, any equipment.",
+    "STRICTLY FORBIDDEN: plants, flowers, props, decorative objects, people, text overlays, edge artifacts, shadow bleeding.",
+    "Nothing in the frame except the product and the studio background.",
+  ].join(" ");
 }
 
-/** Prompt for the second orbit segment — continues the clockwise arc from the current view. */
+/**
+ * Prompt for the second orbit segment — continues the arc from the current mid-angle view.
+ * Used only in multi-segment stitch mode.
+ */
 export function orbitContinuationPrompt(category: Category, background: string): string {
-  return `Smooth clockwise camera orbit continues around the product shown, completing the full circle back to the front-facing view. The product must appear exactly as in this image — same exact shape, same closed/sealed configuration, same colors, same labels. Do not open, uncap, extend, or alter the product. The product is stationary; only the camera moves. ${CAMERA[category]}. ${backgroundFragment(background)}. Professional product photography lighting, soft diffused light. Constant camera height. Constant focal length. No zoom. No deformation. No morphing. No edge artifacts. No shadows bleeding off the edge of the frame. No plants. No flowers. No props. No decorative elements. No people. Nothing except the product and the background. 8-second smooth motion.`;
+  return [
+    "Professional product photography. Smooth camera orbit continues.",
+    "The product shown in this image sits on a flat studio surface and is completely stationary.",
+    "CAMERA MOVEMENT: the camera continues traveling clockwise in a horizontal circle at constant height, completing the orbit back to the front-facing view.",
+    "The camera moves strictly in the horizontal plane. No vertical movement. No camera tilt. No zoom. Constant focal length. Constant height.",
+    CAMERA[category] + ".",
+    backgroundFragment(background) + ".",
+    "Product appearance is identical to the source — same shape, colors, labels, texture. Do not alter or reimagine.",
+    "STRICTLY FORBIDDEN: wires, strings, suspension cables, hanging apparatus, camera rigs, mounting hardware, tripods, studio clamps, ball-head mounts, any equipment.",
+    "STRICTLY FORBIDDEN: plants, flowers, props, decorative objects, people, text overlays, edge artifacts.",
+    "Nothing in the frame except the product and the studio background.",
+  ].join(" ");
 }
