@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { Check, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
 
@@ -9,11 +10,31 @@ import { cn } from "@/lib/utils";
 import type { GenerationJob } from "@/lib/types";
 
 /**
- * Vertical stage tracker shown while a render is queued/running —
- * the moment where the product's pipeline story gets told.
+ * Vertical stage tracker shown while a render is queued/running.
+ * Active stage shows a live elapsed-seconds counter; done stages show the
+ * typical duration estimate; pending stages show nothing.
  */
 export function PipelineProgress({ job }: { job: GenerationJob }) {
   const currentIdx = stageIndex(job.stage);
+
+  // Track elapsed seconds for the currently active stage.
+  const [elapsed, setElapsed] = React.useState(0);
+  const stageRef = React.useRef<string>(job.stage);
+
+  React.useEffect(() => {
+    // Reset counter whenever the stage changes.
+    if (stageRef.current !== job.stage) {
+      stageRef.current = job.stage;
+      setElapsed(0);
+    }
+    if (job.status === "completed" || job.status === "failed") return;
+
+    const interval = window.setInterval(
+      () => setElapsed((s) => s + 1),
+      1000,
+    );
+    return () => window.clearInterval(interval);
+  }, [job.stage, job.status]);
 
   return (
     <ol className="space-y-0">
@@ -25,6 +46,13 @@ export function PipelineProgress({ job }: { job: GenerationJob }) {
               ? "active"
               : "pending";
         const isLast = idx === PIPELINE_STAGES.length - 1;
+
+        const timingLabel =
+          state === "active"
+            ? formatDuration(elapsed)
+            : state === "done"
+              ? `~${formatDuration(stage.typicalSeconds)}`
+              : null;
 
         return (
           <li key={stage.id} className="relative flex gap-4 pb-6 last:pb-0">
@@ -65,7 +93,8 @@ export function PipelineProgress({ job }: { job: GenerationJob }) {
                   {stage.label}
                 </p>
                 <p className="shrink-0 font-mono text-[11px] text-muted-foreground/70 tabular-nums">
-                  {stage.engine} · ~{formatDuration(stage.typicalSeconds)}
+                  {stage.engine}
+                  {timingLabel ? ` · ${timingLabel}` : ""}
                 </p>
               </div>
               <p className="mt-0.5 text-xs text-muted-foreground">

@@ -127,6 +127,22 @@ type RawLedgerEntry = {
 // Mappers
 // ---------------------------------------------------------------------------
 
+/**
+ * Laravel stores timestamps in UTC but sometimes without a timezone suffix
+ * ("2026-07-19 10:30:00" or "2026-07-19T10:30:00"). Without the Z suffix,
+ * browsers parse them as LOCAL time, producing a UTC-offset error (e.g. 4h
+ * in UTC+4). Append Z when no timezone info is present.
+ */
+function toUtcIso(ts: string): string {
+  if (!ts) return ts;
+  if (ts.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(ts)) return ts;
+  return ts.replace(" ", "T") + "Z";
+}
+
+function toUtcIsoNullable(ts: string | null): string | null {
+  return ts ? toUtcIso(ts) : null;
+}
+
 function mapUser(u: RawUser): CurrentUser {
   const initials = u.name
     .split(" ")
@@ -153,8 +169,8 @@ function mapProduct(p: RawProduct): Product {
     category: (p.category ?? "general") as ProductCategory,
     status: p.status as ProductStatus,
     version: p.version,
-    createdAt: p.created_at,
-    completedAt: p.completed_at,
+    createdAt: toUtcIso(p.created_at),
+    completedAt: toUtcIsoNullable(p.completed_at),
     creditsUsed: p.credits_used,
     views: p.views,
     downloads: p.downloads,
@@ -176,8 +192,8 @@ function mapJob(j: RawJob): GenerationJob {
     stage: j.stage as StageId,
     progress: j.progress,
     settings: j.settings,
-    createdAt: j.created_at,
-    finishedAt: j.finished_at,
+    createdAt: toUtcIso(j.created_at),
+    finishedAt: toUtcIsoNullable(j.finished_at),
     durationSeconds: j.duration_seconds,
     creditsUsed: j.credits_used,
     error: j.error ?? undefined,
@@ -197,7 +213,7 @@ export async function getWorkspace(): Promise<Workspace> {
     creditsBalance: data.credits,
     totalPurchased: data.total_purchased,
     creditsUsed: data.credits_used,
-    createdAt: data.created_at,
+    createdAt: toUtcIso(data.created_at),
   };
 }
 
@@ -271,7 +287,7 @@ export async function getCreditLedger(): Promise<CreditEntry[]> {
     description: e.description ?? "",
     amount: e.amount,
     balanceAfter: e.balance_after,
-    createdAt: e.created_at,
+    createdAt: toUtcIso(e.created_at),
   }));
 }
 

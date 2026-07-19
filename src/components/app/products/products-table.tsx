@@ -125,7 +125,7 @@ export function ProductsTable({ initial }: { initial: Product[] }) {
                 <TableHead className="hidden text-right xl:table-cell">
                   Downloads
                 </TableHead>
-                <TableHead className="text-right">Created</TableHead>
+                <TableHead className="text-right">Date</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -171,7 +171,7 @@ export function ProductsTable({ initial }: { initial: Product[] }) {
                     {product.downloads > 0 ? formatNumber(product.downloads) : "—"}
                   </TableCell>
                   <TableCell className="text-right text-sm whitespace-nowrap text-muted-foreground">
-                    <RelativeTime iso={product.createdAt} />
+                    <RelativeTime iso={product.completedAt ?? product.createdAt} />
                   </TableCell>
                 </TableRow>
               ))}
