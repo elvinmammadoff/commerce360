@@ -87,8 +87,8 @@ export async function cleanVideoBackground(
     await mkdir(cleanDir, { recursive: true });
 
     // Resolve model version once (avoids per-frame API call)
-    const versionId = await resolveVersion(replicate, "lucataco", "remove-bg");
-    const modelRef = `lucataco/remove-bg:${versionId}`;
+    const versionId = await resolveVersion(replicate, "cjwbw", "rembg");
+    const modelRef = `cjwbw/rembg:${versionId}`;
 
     // 1. Extract frames at 12fps (smooth enough for turntable orbit)
     await execFileAsync("ffmpeg", [
