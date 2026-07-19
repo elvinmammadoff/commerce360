@@ -5,6 +5,7 @@ import { detectCategory } from "./stages/detect";
 import { normalizeImage } from "./stages/normalize";
 import { renderOrbit360 } from "./stages/render";
 import { upscaleOrbitVideo } from "./stages/upscale";
+import { saveOrbitVideo } from "./stages/download";
 import { extractFrames } from "./stages/extract";
 import { packageAssets } from "./stages/package";
 import type { Category } from "./presets";
@@ -50,13 +51,21 @@ async function processRenderJob(job: Job<RenderJobData>) {
     );
     await patchJob(jobId, { stage: "rendering", progress: 100 });
 
-    // Stage 3: Upscale — skipped; use DoP video directly until correct endpoint confirmed
+    // Stage 3: Save orbit video to VPS disk for same-origin serving.
+    // Higgsfield CDN URLs lack CORS headers — storing the video locally lets
+    // the browser canvas extract frames and lets a.download work correctly.
+    await patchJob(jobId, { stage: "upscaling", progress: 10 });
+    const saved = await saveOrbitVideo(orbit.url, productId).catch((err) => {
+      console.warn(`[worker] video download to disk failed, using CDN URL: ${(err as Error).message}`);
+      return null;
+    });
+    const upscaledVideoUrl = saved?.servedUrl ?? orbit.url;
+    const videoLocalPath = saved?.localPath ?? orbit.localPath;
     await patchJob(jobId, { stage: "upscaling", progress: 100 });
-    const upscaledVideoUrl = orbit.url;
 
     // Stage 4: Extract — 72 stills at 5° intervals via ffmpeg (optional)
     await patchJob(jobId, { stage: "extracting", progress: 5 });
-    const extract = await extractFrames(orbit.localPath ?? upscaledVideoUrl).catch((err) => {
+    const extract = await extractFrames(videoLocalPath ?? upscaledVideoUrl).catch((err) => {
       // ffmpeg not available or extraction failed — log and continue without frames
       console.warn(`[worker] frame extraction skipped: ${(err as Error).message}`);
       return null;
