@@ -18,7 +18,9 @@ import type { Product } from "@/lib/types";
 
 export function RecentProducts({ initial }: { initial: Product[] }) {
   const sim = useSimulation();
-  const products = [...sim.products, ...initial].slice(0, 4);
+  const products = [...sim.products, ...initial]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 4);
 
   return (
     <Card>

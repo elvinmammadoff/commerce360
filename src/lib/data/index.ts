@@ -216,7 +216,9 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
 
 export async function getProducts(): Promise<Product[]> {
   const data = await apiJson<RawProduct[]>("/api/products");
-  return data.map(mapProduct);
+  return data
+    .map(mapProduct)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 export async function getProduct(id: string): Promise<Product | undefined> {
