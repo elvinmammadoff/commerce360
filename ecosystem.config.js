@@ -19,6 +19,7 @@ module.exports = {
       exec_mode: "fork",
       env: {
         NODE_ENV: "production",
+        PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
         REDIS_URL: "redis://127.0.0.1:6379",
         API_URL: "https://api.orbittify.com",
         API_SERVICE_TOKEN: process.env.API_SERVICE_TOKEN ?? "",

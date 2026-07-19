@@ -39,9 +39,24 @@ async function cleanFrame(
   const imageBase64 = (await readFile(framePath)).toString("base64");
   const dataUrl = `data:image/jpeg;base64,${imageBase64}`;
 
-  const output = await replicate.run(modelRef as `${string}/${string}:${string}`, {
-    input: { image: dataUrl },
-  }) as unknown as string;
+  let output!: string;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      output = await replicate.run(modelRef as `${string}/${string}:${string}`, {
+        input: { image: dataUrl },
+      }) as unknown as string;
+      break;
+    } catch (err) {
+      const msg = (err as Error).message ?? "";
+      if (attempt < 3 && msg.includes("429")) {
+        const match = msg.match(/"retry_after":(\d+)/);
+        const waitMs = (match ? parseInt(match[1], 10) : (attempt + 1) * 10) * 1000 + 1000;
+        await new Promise((r) => setTimeout(r, waitMs));
+        continue;
+      }
+      throw err;
+    }
+  }
 
   const res = await fetch(output);
   if (!res.ok) throw new Error(`BG removal download failed: ${res.status}`);
@@ -105,8 +120,8 @@ export async function cleanVideoBackground(
 
     if (frameFiles.length === 0) throw new Error("No frames extracted from video");
 
-    // 2. Process frames through BiRefNet, 5 concurrent
-    const CONCURRENCY = 5;
+    // 2. Process frames through BiRefNet, 2 concurrent to respect rate limits
+    const CONCURRENCY = 2;
     for (let i = 0; i < frameFiles.length; i += CONCURRENCY) {
       const batch = frameFiles.slice(i, i + CONCURRENCY);
       await Promise.all(
