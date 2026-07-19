@@ -8,6 +8,7 @@ const CONTENT_TYPES: Record<string, string> = {
   jpeg: "image/jpeg",
   png: "image/png",
   gif: "image/gif",
+  mp4: "video/mp4",
 };
 
 export async function GET(

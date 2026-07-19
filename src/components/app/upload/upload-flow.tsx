@@ -181,7 +181,7 @@ function Dropzone({
   );
 }
 
-export function UploadFlow({ prefill }: { prefill?: Product }) {
+export function UploadFlow({ prefill, serverCreditsBalance = 0 }: { prefill?: Product; serverCreditsBalance?: number }) {
   const router = useRouter();
   const sim = useSimulation();
 
@@ -264,8 +264,10 @@ export function UploadFlow({ prefill }: { prefill?: Product }) {
     }
   };
 
+  // Use real server balance for the generate gate; sim balance as fallback for demo mode.
+  const effectiveCredits = Math.max(serverCreditsBalance, sim.creditsBalance);
   const canGenerate =
-    source !== null && name.trim().length > 1 && (isRetry || sim.creditsBalance > 0) && !generating;
+    source !== null && name.trim().length > 1 && (isRetry || effectiveCredits > 0) && !generating;
 
   const activeSimJob = sim.jobs.find(
     (j) => j.status === "queued" || j.status === "running",
@@ -575,7 +577,7 @@ export function UploadFlow({ prefill }: { prefill?: Product }) {
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Balance after</span>
               <span className="font-medium tabular-nums">
-                {Math.max(0, sim.creditsBalance - 1)} credits
+                {Math.max(0, effectiveCredits - 1)} credits
               </span>
             </div>
             <Button
@@ -587,7 +589,7 @@ export function UploadFlow({ prefill }: { prefill?: Product }) {
               <Sparkles aria-hidden="true" />
               {generating ? "Uploading…" : "Generate 360° assets"}
             </Button>
-            {sim.creditsBalance === 0 && !isRetry && (
+            {effectiveCredits === 0 && !isRetry && (
               activeSimJob ? (
                 <p className="text-center text-xs text-muted-foreground">
                   Render in progress —{" "}

@@ -67,9 +67,9 @@ export function SidebarNav({
 }
 
 export function SidebarCredits({ workspace }: { workspace: Workspace }) {
-  const { creditsBalance, creditsPurchased } = useSimulation();
-  // Wallet fill: how much of the lifetime purchased credits remain.
-  const totalPurchased = workspace.totalPurchased + creditsPurchased;
+  // Always show the real server balance, not the sim state.
+  const creditsBalance = workspace.creditsBalance;
+  const totalPurchased = workspace.totalPurchased;
   const pct =
     totalPurchased > 0
       ? Math.min(100, Math.round((creditsBalance / totalPurchased) * 100))

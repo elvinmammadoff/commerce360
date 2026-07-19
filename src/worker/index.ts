@@ -3,7 +3,7 @@ import { connection } from "./redis";
 import { patchJob, patchProduct, refundRenderCredit } from "./api";
 import { detectCategory } from "./stages/detect";
 import { normalizeImage } from "./stages/normalize";
-import { renderOrbitVideo } from "./stages/render";
+import { renderOrbit360 } from "./stages/render";
 import { upscaleOrbitVideo } from "./stages/upscale";
 import { extractFrames } from "./stages/extract";
 import { packageAssets } from "./stages/package";
@@ -32,16 +32,20 @@ async function processRenderJob(job: Job<RenderJobData>) {
       (await detectCategory(imageUrl)) ?? job.data.category ?? "general";
     await patchProduct(productId, { category: detected });
 
-    // Stage 1: Normalize — remove.bg strips background, places product on studio color
+    // Stage 1: Normalize — remove.bg strips background, places product on studio color.
+    // Falls back to original image if remove.bg is unavailable or quota exceeded.
     await patchJob(jobId, { stage: "normalizing", progress: 5 });
     const normalizedUrl = await normalizeImage(imageUrl, background, (pct) =>
       patchJob(jobId, { stage: "normalizing", progress: 5 + Math.round(pct * 0.9) }),
-    );
+    ).catch((err: Error) => {
+      console.warn(`[worker] normalize failed, using original image: ${err.message}`);
+      return imageUrl;
+    });
     await patchJob(jobId, { stage: "normalizing", progress: 100 });
 
-    // Stage 2: Render — Higgsfield DoP model generates the 360° orbit video
+    // Stage 2: Render — two DoP segments stitched into a full 360° orbit
     await patchJob(jobId, { stage: "rendering", progress: 5 });
-    const orbit = await renderOrbitVideo(normalizedUrl, detected, background, (pct) =>
+    const orbit = await renderOrbit360(normalizedUrl, detected, background, (pct) =>
       patchJob(jobId, { stage: "rendering", progress: 5 + Math.round(pct * 0.9) }),
     );
     await patchJob(jobId, { stage: "rendering", progress: 100 });
@@ -52,7 +56,7 @@ async function processRenderJob(job: Job<RenderJobData>) {
 
     // Stage 4: Extract — 72 stills at 5° intervals via ffmpeg (optional)
     await patchJob(jobId, { stage: "extracting", progress: 5 });
-    const extract = await extractFrames(upscaledVideoUrl).catch((err) => {
+    const extract = await extractFrames(orbit.localPath ?? upscaledVideoUrl).catch((err) => {
       // ffmpeg not available or extraction failed — log and continue without frames
       console.warn(`[worker] frame extraction skipped: ${(err as Error).message}`);
       return null;
