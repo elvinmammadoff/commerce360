@@ -67,6 +67,7 @@ export function ViewerStage({
       </header>
       <TurntableViewer
         src={product.assets.orbitVideoUrl}
+        frames={product.assets.frameUrls}
         frameCount={product.assets.frameCount}
         productName={product.name}
         hotspots={product.hotspots}

@@ -103,6 +103,7 @@ export interface ProductAssets {
   videoSizeMb: number;
   frameCount: number; // 72 stills at 5° intervals
   frameResolution: number; // px, square
+  frameUrls?: string[]; // 72 individual frame URLs for image-based viewer
   packageSizeMb: number; // full ZIP download
   marketplaceSetSizeMb: number;
 }

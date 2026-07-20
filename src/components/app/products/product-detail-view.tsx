@@ -383,6 +383,7 @@ export function ProductDetailView({
               <TabsContent value="viewer" className="mt-4">
                 <TurntableViewer
                   src={product.assets.orbitVideoUrl}
+                  frames={product.assets.frameUrls}
                   frameCount={product.assets.frameCount}
                   productName={product.name}
                   hotspots={hotspots}

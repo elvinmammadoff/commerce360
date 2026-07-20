@@ -23,6 +23,8 @@ const MIN_VELOCITY = 0.00035;
 
 export interface TurntableViewerProps {
   src: string;
+  /** 72 individual frame URLs — when provided, viewer uses instant image swap instead of video scrubbing. */
+  frames?: string[];
   frameCount?: number;
   className?: string;
   /** Start the orbit spinning on load (pauses on first interaction). */
@@ -44,6 +46,7 @@ function wrapTime(time: number, duration: number): number {
 
 export function TurntableViewer({
   src,
+  frames,
   frameCount = 72,
   className,
   autoRotate = false,
@@ -63,6 +66,33 @@ export function TurntableViewer({
   const [interacted, setInteracted] = React.useState(false);
   const [fullscreen, setFullscreen] = React.useState(false);
   const [angle, setAngle] = React.useState(0);
+
+  // Image-based mode state
+  const [frameIdx, setFrameIdx] = React.useState(0);
+  const [framesLoaded, setFramesLoaded] = React.useState(false);
+  const imgCacheRef = React.useRef<HTMLImageElement[]>([]);
+  const autoRafRef = React.useRef<number | null>(null);
+  const lastFrameTimeRef = React.useRef<number>(0);
+  // ms per frame for auto-rotate (~5.25s full rotation)
+  const msPerFrame = frames?.length ? 5250 / frames.length : 73;
+
+  // Preload all frames when provided
+  React.useEffect(() => {
+    if (!frames?.length) return;
+    let loaded = 0;
+    const imgs = frames.map((url) => {
+      const img = new Image();
+      img.onload = () => {
+        loaded++;
+        if (loaded === frames.length) setFramesLoaded(true);
+      };
+      img.onerror = () => { loaded++; if (loaded === frames.length) setFramesLoaded(true); };
+      img.src = url;
+      return img;
+    });
+    imgCacheRef.current = imgs;
+    return () => { imgCacheRef.current = []; };
+  }, [frames]);
 
   const drag = React.useRef({
     active: false,
@@ -87,7 +117,9 @@ export function TurntableViewer({
   }, []);
 
   // Angle HUD — poll currentTime on rAF only while something can move.
+  // Angle HUD — image mode: derive from frameIdx; video mode: poll currentTime
   React.useEffect(() => {
+    if (frames?.length) return; // image mode handles angle via setAngle in drag/auto
     const tick = () => {
       const video = videoRef.current;
       if (video && video.duration > 0) {
@@ -101,7 +133,15 @@ export function TurntableViewer({
     return () => {
       if (hudRaf.current !== null) cancelAnimationFrame(hudRaf.current);
     };
-  }, []);
+  }, [frames]);
+
+  // Keep angle in sync with frameIdx (image mode)
+  React.useEffect(() => {
+    if (!frames?.length) return;
+    const a = (frameIdx / frames.length) * 360;
+    setAngle(a);
+    onAngleChangeRef.current?.(a);
+  }, [frameIdx, frames]);
 
   React.useEffect(() => {
     const onFullscreenChange = () =>
@@ -118,36 +158,69 @@ export function TurntableViewer({
     ).matches;
   }, []);
 
+  // Image-mode auto-rotate via RAF
+  const startImageRotate = React.useCallback(() => {
+    if (!frames?.length) return;
+    wantPlayRef.current = true;
+    setPlaying(true);
+    lastFrameTimeRef.current = performance.now();
+    const tick = (now: number) => {
+      if (!wantPlayRef.current) return;
+      if (now - lastFrameTimeRef.current >= msPerFrame) {
+        setFrameIdx((prev) => (prev + 1) % frames.length);
+        lastFrameTimeRef.current = now;
+      }
+      autoRafRef.current = requestAnimationFrame(tick);
+    };
+    autoRafRef.current = requestAnimationFrame(tick);
+  }, [frames, msPerFrame]);
+
+  const stopImageRotate = React.useCallback(() => {
+    if (autoRafRef.current !== null) {
+      cancelAnimationFrame(autoRafRef.current);
+      autoRafRef.current = null;
+    }
+    wantPlayRef.current = false;
+    setPlaying(false);
+  }, []);
+
   const play = React.useCallback(() => {
+    if (frames?.length) { startImageRotate(); return; }
     const video = videoRef.current;
     if (!video) return;
     stopInertia();
     wantPlayRef.current = true;
     if (inViewRef.current) void video.play().catch(() => {});
-  }, [stopInertia]);
+  }, [frames, startImageRotate, stopInertia]);
 
   const pause = React.useCallback(() => {
+    if (frames?.length) { stopImageRotate(); return; }
     const video = videoRef.current;
     if (!video) return;
     wantPlayRef.current = false;
     video.pause();
-  }, []);
+  }, [frames, stopImageRotate]);
 
   const handleReady = React.useCallback(() => {
     setReady(true);
     if (autoRotate && !prefersReducedMotion.current) play();
   }, [autoRotate, play]);
 
-  // The load events can fire before hydration attaches listeners (fast
-  // local assets, HMR) — reconcile readiness on mount.
+  // Image mode: mark ready once all frames preloaded
   React.useEffect(() => {
+    if (frames?.length && framesLoaded) handleReady();
+  }, [frames, framesLoaded, handleReady]);
+
+  // Video mode: reconcile readiness on mount
+  React.useEffect(() => {
+    if (frames?.length) return;
     const video = videoRef.current;
     if (video && video.readyState >= 2) handleReady();
-  }, [handleReady]);
+  }, [frames, handleReady]);
 
-  // Browsers pause offscreen muted autoplay — cooperate instead of fighting:
-  // pause when the stage scrolls out, resume intent when it returns.
+  // Video mode: pause offscreen
   React.useEffect(() => {
+    if (frames?.length) return;
     const container = containerRef.current;
     if (!container) return;
     const observer = new IntersectionObserver(
@@ -193,80 +266,99 @@ export function TurntableViewer({
     video.currentTime = wrapTime(video.currentTime + deltaSeconds, video.duration);
   }, []);
 
-  const startInertia = React.useCallback(() => {
-    const video = videoRef.current;
-    if (!video || !video.duration) return;
-    let velocity = drag.current.velocity * 16; // seconds of video per ~16.7ms frame
-    if (Math.abs(velocity) < MIN_VELOCITY * 16) return;
-
+  // Image-mode inertia: velocity = frames per ms
+  const startImageInertia = React.useCallback((framesArr: string[]) => {
+    let velocity = drag.current.velocity * 16; // frames per ~16.7ms
+    if (Math.abs(velocity) < 0.01) return;
     let last = performance.now();
     const step = (now: number) => {
-      // Time-based decay keeps the glide identical at any frame rate.
-      const frames = (now - last) / 16.7;
+      const elapsed = (now - last) / 16.7;
       last = now;
-      velocity *= Math.pow(FRICTION, frames);
-      if (Math.abs(velocity) < MIN_VELOCITY) {
-        inertiaRaf.current = null;
-        return;
-      }
-      scrubBy(velocity * frames);
+      velocity *= Math.pow(FRICTION, elapsed);
+      if (Math.abs(velocity) < 0.01) { inertiaRaf.current = null; return; }
+      setFrameIdx((prev) => {
+        const next = Math.round(prev + velocity * elapsed);
+        return ((next % framesArr.length) + framesArr.length) % framesArr.length;
+      });
       inertiaRaf.current = requestAnimationFrame(step);
     };
     inertiaRaf.current = requestAnimationFrame(step);
-  }, [scrubBy]);
+  }, []);
+
+  const startInertia = React.useCallback(() => {
+    if (frames?.length) { startImageInertia(frames); return; }
+    const video = videoRef.current;
+    if (!video || !video.duration) return;
+    let velocity = drag.current.velocity * 16;
+    if (Math.abs(velocity) < MIN_VELOCITY * 16) return;
+    let last = performance.now();
+    const step = (now: number) => {
+      const elapsed = (now - last) / 16.7;
+      last = now;
+      velocity *= Math.pow(FRICTION, elapsed);
+      if (Math.abs(velocity) < MIN_VELOCITY) { inertiaRaf.current = null; return; }
+      scrubBy(velocity * elapsed);
+      inertiaRaf.current = requestAnimationFrame(step);
+    };
+    inertiaRaf.current = requestAnimationFrame(step);
+  }, [frames, scrubBy, startImageInertia]);
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
+      if (frames?.length) {
+        try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
+        stopInertia();
+        stopImageRotate();
+        setInteracted(true);
+        drag.current = { active: true, startX: e.clientX, startTime: frameIdx, lastX: e.clientX, lastMoveAt: performance.now(), velocity: 0 };
+        return;
+      }
       const video = videoRef.current;
       if (!video || !video.duration) return;
-      try {
-        e.currentTarget.setPointerCapture(e.pointerId);
-      } catch {
-        // Capture is best-effort — drag still works without it.
-      }
+      try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
       stopInertia();
       pause();
       setInteracted(true);
-      drag.current = {
-        active: true,
-        startX: e.clientX,
-        startTime: video.currentTime,
-        lastX: e.clientX,
-        lastMoveAt: performance.now(),
-        velocity: 0,
-      };
+      drag.current = { active: true, startX: e.clientX, startTime: video.currentTime, lastX: e.clientX, lastMoveAt: performance.now(), velocity: 0 };
     },
-    [pause, stopInertia],
+    [frames, frameIdx, pause, stopInertia, stopImageRotate],
   );
 
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      const video = videoRef.current;
       const container = containerRef.current;
-      if (!video || !container || !drag.current.active || !video.duration) return;
-
+      if (!container || !drag.current.active) return;
       const rect = container.getBoundingClientRect();
-      const dx = e.clientX - drag.current.startX;
-      const deltaTime =
-        -(dx / rect.width) * video.duration * DRAG_ROTATIONS_PER_WIDTH;
-      video.currentTime = wrapTime(
-        drag.current.startTime + deltaTime,
-        video.duration,
-      );
 
+      if (frames?.length) {
+        const dx = e.clientX - drag.current.startX;
+        const deltaFrames = -(dx / rect.width) * frames.length * DRAG_ROTATIONS_PER_WIDTH;
+        const raw = Math.round(drag.current.startTime + deltaFrames);
+        setFrameIdx(((raw % frames.length) + frames.length) % frames.length);
+        const nowMs = performance.now();
+        const dt = nowMs - drag.current.lastMoveAt;
+        if (dt > 0) {
+          drag.current.velocity = (-(e.clientX - drag.current.lastX) / rect.width) * frames.length * DRAG_ROTATIONS_PER_WIDTH / dt;
+          drag.current.lastX = e.clientX;
+          drag.current.lastMoveAt = nowMs;
+        }
+        return;
+      }
+
+      const video = videoRef.current;
+      if (!video || !video.duration) return;
+      const dx = e.clientX - drag.current.startX;
+      const deltaTime = -(dx / rect.width) * video.duration * DRAG_ROTATIONS_PER_WIDTH;
+      video.currentTime = wrapTime(drag.current.startTime + deltaTime, video.duration);
       const nowMs = performance.now();
       const dt = nowMs - drag.current.lastMoveAt;
       if (dt > 0) {
-        const instantVelocity =
-          (-(e.clientX - drag.current.lastX) / rect.width) *
-          video.duration *
-          DRAG_ROTATIONS_PER_WIDTH;
-        drag.current.velocity = instantVelocity / dt;
+        drag.current.velocity = (-(e.clientX - drag.current.lastX) / rect.width) * video.duration * DRAG_ROTATIONS_PER_WIDTH / dt;
         drag.current.lastX = e.clientX;
         drag.current.lastMoveAt = nowMs;
       }
     },
-    [],
+    [frames],
   );
 
   const onPointerUp = React.useCallback(() => {
@@ -277,46 +369,41 @@ export function TurntableViewer({
 
   const onKeyDown = React.useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (frames?.length) {
+        switch (e.key) {
+          case "ArrowRight":
+            e.preventDefault(); stopInertia(); stopImageRotate(); setInteracted(true);
+            setFrameIdx((p) => (p + 1) % frames.length); break;
+          case "ArrowLeft":
+            e.preventDefault(); stopInertia(); stopImageRotate(); setInteracted(true);
+            setFrameIdx((p) => ((p - 1) + frames.length) % frames.length); break;
+          case " ":
+            e.preventDefault(); setInteracted(true);
+            if (playing) pause(); else play(); break;
+          case "Home":
+            e.preventDefault(); stopInertia(); stopImageRotate(); setFrameIdx(0); break;
+          case "f": case "F": e.preventDefault(); toggleFullscreen(); break;
+        }
+        return;
+      }
       const video = videoRef.current;
       if (!video || !video.duration) return;
       const frameStep = video.duration / frameCount;
-
       switch (e.key) {
         case "ArrowRight":
-          e.preventDefault();
-          stopInertia();
-          pause();
-          setInteracted(true);
-          scrubBy(frameStep);
-          break;
+          e.preventDefault(); stopInertia(); pause(); setInteracted(true); scrubBy(frameStep); break;
         case "ArrowLeft":
-          e.preventDefault();
-          stopInertia();
-          pause();
-          setInteracted(true);
-          scrubBy(-frameStep);
-          break;
+          e.preventDefault(); stopInertia(); pause(); setInteracted(true); scrubBy(-frameStep); break;
         case " ":
-          e.preventDefault();
-          setInteracted(true);
-          if (playing) pause();
-          else play();
-          break;
+          e.preventDefault(); setInteracted(true);
+          if (playing) pause(); else play(); break;
         case "Home":
-          e.preventDefault();
-          stopInertia();
-          pause();
-          video.currentTime = 0;
-          break;
-        case "f":
-        case "F":
-          e.preventDefault();
-          toggleFullscreen();
-          break;
+          e.preventDefault(); stopInertia(); pause(); video.currentTime = 0; break;
+        case "f": case "F": e.preventDefault(); toggleFullscreen(); break;
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [frameCount, pause, play, playing, scrubBy],
+    [frames, frameCount, pause, play, playing, scrubBy, stopImageRotate],
   );
 
   const toggleFullscreen = React.useCallback(() => {
@@ -358,26 +445,42 @@ export function TurntableViewer({
         className,
       )}
     >
-      <video
-        ref={videoRef}
-        src={src}
-        muted
-        loop
-        playsInline
-        preload="auto"
-        disablePictureInPicture
-        onLoadedData={handleReady}
-        onCanPlay={handleReady}
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-        aria-hidden="true"
-        draggable={false}
-        className={cn(
-          "size-full object-contain transition-opacity duration-300",
-          fullscreen && "max-h-svh",
-          ready ? "opacity-100" : "opacity-0",
-        )}
-      />
+      {frames?.length ? (
+        // Image-based mode: instant frame swap, no video decode latency
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={frames[frameIdx]}
+          alt={productName}
+          draggable={false}
+          aria-hidden="true"
+          className={cn(
+            "size-full object-contain transition-opacity duration-300",
+            fullscreen && "max-h-svh",
+            ready ? "opacity-100" : "opacity-0",
+          )}
+        />
+      ) : (
+        <video
+          ref={videoRef}
+          src={src}
+          muted
+          loop
+          playsInline
+          preload="auto"
+          disablePictureInPicture
+          onLoadedData={handleReady}
+          onCanPlay={handleReady}
+          onPlay={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
+          aria-hidden="true"
+          draggable={false}
+          className={cn(
+            "size-full object-contain transition-opacity duration-300",
+            fullscreen && "max-h-svh",
+            ready ? "opacity-100" : "opacity-0",
+          )}
+        />
+      )}
 
       {/* Hotspot overlay — each marker fades in as the orbit reaches its angle */}
       {ready && hotspots && hotspots.length > 0 && (
