@@ -84,6 +84,7 @@ export async function packageAssets(input: PackageInput): Promise<void> {
     body: JSON.stringify({
       status: "completed",
       completed_at: completedAt,
+      credits_used: 1,
       assets,
     }),
   });
