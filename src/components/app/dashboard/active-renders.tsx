@@ -61,6 +61,8 @@ export function ActiveRenders({ initialJobs }: { initialJobs: GenerationJob[] })
     ...sim.jobs.filter((j) => j.status === "queued" || j.status === "running"),
     ...liveFixtureJobs,
   ];
+  const visible = active.slice(0, 4);
+  const overflow = active.length - visible.length;
 
   return (
     <Card>
@@ -88,11 +90,21 @@ export function ActiveRenders({ initialJobs }: { initialJobs: GenerationJob[] })
             }
           />
         ) : (
-          <ul className="space-y-3">
-            {active.map((job) => (
-              <RenderRow key={job.id} job={job} />
-            ))}
-          </ul>
+          <>
+            <ul className="space-y-3">
+              {visible.map((job) => (
+                <RenderRow key={job.id} job={job} />
+              ))}
+            </ul>
+            {overflow > 0 && (
+              <p className="mt-3 text-center text-xs text-muted-foreground">
+                +{overflow} more job{overflow > 1 ? "s" : ""} —{" "}
+                <Link href="/history" className="underline underline-offset-2">
+                  view all
+                </Link>
+              </p>
+            )}
+          </>
         )}
       </CardContent>
     </Card>

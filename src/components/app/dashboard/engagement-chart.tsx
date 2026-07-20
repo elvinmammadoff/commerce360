@@ -30,6 +30,7 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function EngagementChart({ data }: { data: EngagementPoint[] }) {
+  const hasData = data.some((p) => p.views > 0 || p.interactions > 0);
   return (
     <Card>
       <CardHeader>
@@ -40,6 +41,14 @@ export function EngagementChart({ data }: { data: EngagementPoint[] }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {!hasData ? (
+          <div className="flex h-64 flex-col items-center justify-center gap-2 text-center">
+            <p className="text-sm font-medium text-foreground">No engagement data yet</p>
+            <p className="max-w-xs text-xs text-muted-foreground">
+              Share your product links or embed the 360° viewer to start collecting engagement data.
+            </p>
+          </div>
+        ) : (
         <ChartContainer config={chartConfig} className="h-64 w-full">
           <AreaChart data={data} margin={{ left: -14, right: 8, top: 4 }}>
             <defs>
@@ -94,6 +103,7 @@ export function EngagementChart({ data }: { data: EngagementPoint[] }) {
             />
           </AreaChart>
         </ChartContainer>
+        )}
       </CardContent>
     </Card>
   );

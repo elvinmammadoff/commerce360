@@ -37,7 +37,7 @@ import type {
 
 import { apiJson } from "@/lib/api-client";
 
-import { activityEvents, notifications } from "./fixtures/activity";
+import { notifications } from "./fixtures/activity";
 import {
   adminAdjustments,
   adminJobs,
@@ -47,7 +47,6 @@ import {
   adminStats,
   adminUsers,
   dailyRenders,
-  engagementSeries,
   monthlyRenders,
   revenueSeries,
   userGrowth,
@@ -310,7 +309,47 @@ export async function getPaymentMethod(): Promise<PaymentMethod> {
 // ---------------------------------------------------------------------------
 
 export async function getActivity(): Promise<ActivityEvent[]> {
-  return activityEvents;
+  try {
+    const products = await getProducts();
+    return products
+      .flatMap((p): ActivityEvent[] => {
+        if (p.status === "completed" && p.completedAt) {
+          return [{
+            id: `completed-${p.id}`,
+            type: "generation_completed",
+            message: `${p.name} orbit render completed`,
+            actor: "System",
+            createdAt: p.completedAt,
+            href: `/products/${p.id}`,
+          }];
+        }
+        if (p.status === "failed") {
+          return [{
+            id: `failed-${p.id}`,
+            type: "generation_failed",
+            message: `${p.name} render failed`,
+            actor: "System",
+            createdAt: p.createdAt,
+            href: `/products/${p.id}`,
+          }];
+        }
+        if (p.status === "queued" || p.status === "processing") {
+          return [{
+            id: `started-${p.id}`,
+            type: "generation_started",
+            message: `${p.name} render started`,
+            actor: "System",
+            createdAt: p.createdAt,
+            href: `/products/${p.id}`,
+          }];
+        }
+        return [];
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 8);
+  } catch {
+    return [];
+  }
 }
 
 export async function getNotifications(): Promise<NotificationItem[]> {
@@ -338,7 +377,13 @@ export function getApiCodeSamples() {
 // ---------------------------------------------------------------------------
 
 export async function getEngagementSeries(): Promise<EngagementPoint[]> {
-  return engagementSeries;
+  const points: EngagementPoint[] = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    points.push({ date: d.toISOString().slice(0, 10), views: 0, interactions: 0 });
+  }
+  return points;
 }
 
 export async function getAdminStats(): Promise<AdminStats> {
