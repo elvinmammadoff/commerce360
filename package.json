@@ -19,6 +19,7 @@
     "cmdk": "^1.1.1",
     "disposable-email-domains": "^1.0.62",
     "ioredis": "^5.11.1",
+    "jszip": "^3.10.1",
     "lucide-react": "^1.23.0",
     "motion": "^12.42.2",
     "next": "15.5.20",

@@ -152,6 +152,13 @@ function DownloadRow({ item }: { item: DownloadItem }) {
   );
 }
 
+interface SizeMeta {
+  video: number;
+  frames: number;
+  package: number;
+  marketplace: number;
+}
+
 export function DownloadsPanel({
   product,
   assets,
@@ -159,7 +166,25 @@ export function DownloadsPanel({
   product: Product;
   assets: ProductAssets;
 }) {
-  const items = buildItems(product, assets);
+  const [sizes, setSizes] = React.useState<SizeMeta | null>(null);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/products/${product.id}/download?meta=1`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: SizeMeta | null) => {
+        if (!cancelled && data) setSizes(data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [product.id]);
+
+  const items = buildItems(product, assets).map((item) =>
+    sizes ? { ...item, sizeMb: sizes[item.id as keyof SizeMeta] ?? item.sizeMb } : item,
+  );
+
   return (
     <ul className="space-y-3">
       {items.map((item) => (
