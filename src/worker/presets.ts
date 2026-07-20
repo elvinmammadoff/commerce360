@@ -65,8 +65,8 @@ export function orbitPrompt(category: Category, background: string): string {
   return [
     "Professional product photography. Smooth camera orbit.",
     "The product sits on a flat studio surface and is completely stationary.",
-    "CAMERA MOVEMENT: the camera travels in a horizontal circle around the product at constant height — like a turntable viewed from the side.",
-    "The camera moves strictly in the horizontal plane. No vertical movement. No camera tilt. No zoom. Constant focal length. Constant height.",
+    "CAMERA MOVEMENT: the camera travels in a complete 360-degree horizontal circle around the product at constant height — like a turntable viewed from the side. The orbit must be a full revolution, starting and ending at the same front-facing angle.",
+    "The camera moves strictly in the horizontal plane. No vertical movement. No camera tilt. No zoom. Constant focal length. Constant height. Full 360-degree coverage is mandatory.",
     CAMERA[category] + ".",
     backgroundFragment(background) + ".",
     "The product appears exactly as in the source image — identical shape, colors, labels, texture, and all details. Do not alter, open, or reimagine the product.",
