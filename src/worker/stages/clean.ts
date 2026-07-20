@@ -8,6 +8,8 @@ import sharp from "sharp";
 
 const execFileAsync = promisify(execFile);
 
+const MODEL_REF = "851-labs/background-remover:a029dff38972b5fda4ec5d75d7d1cd25aeff621d2cf4946a41055d7db66b80bc";
+
 /** Map background label → RGB for product compositing. */
 function bgRgb(background: string): { r: number; g: number; b: number } {
   const key = background.trim().toLowerCase();
@@ -17,13 +19,6 @@ function bgRgb(background: string): { r: number; g: number; b: number } {
   if (key.includes("marble")) return { r: 250, g: 250, b: 250 };
   if (key.includes("gradient")) return { r: 240, g: 240, b: 240 };
   return { r: 255, g: 255, b: 255 };
-}
-
-async function resolveVersion(replicate: Replicate, owner: string, name: string): Promise<string> {
-  const model = await replicate.models.get(owner, name);
-  const id = (model as { latest_version?: { id?: string } }).latest_version?.id;
-  if (!id) throw new Error(`Cannot resolve ${owner}/${name} latest version`);
-  return id;
 }
 
 /**
@@ -100,9 +95,7 @@ export async function cleanVideoBackground(
     await mkdir(framesDir, { recursive: true });
     await mkdir(cleanDir, { recursive: true });
 
-    // Resolve model version once (avoids per-frame API call)
-    const versionId = await resolveVersion(replicate, "cjwbw", "rembg");
-    const modelRef = `cjwbw/rembg:${versionId}`;
+    const modelRef = MODEL_REF;
 
     // 1. Extract at 4fps — 20 frames per 5-second orbit vs 60 at 12fps.
     // Fewer Replicate calls, still enough angular coverage for a turntable spin.
@@ -145,6 +138,7 @@ export async function cleanVideoBackground(
     await execFileAsync("ffmpeg", [
       "-framerate", "4",
       "-i", join(cleanDir, "frame_%04d.jpg"),
+      "-r", "24",
       "-c:v", "libx264",
       "-crf", "22",
       "-pix_fmt", "yuv420p",

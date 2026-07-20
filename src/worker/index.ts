@@ -82,9 +82,12 @@ async function processRenderJob(job: Job<RenderJobData>) {
     }
     await patchJob(jobId, { stage: "upscaling", progress: 100 });
 
-    // Stage 4: Extract — 72 stills at 5° intervals via ffmpeg (optional)
+    // Stage 4: Extract — 72 stills at 5° intervals via ffmpeg (optional).
+    // Always use the original saved video (not the 4fps clean video) so extracted
+    // frames have full temporal coverage and the 360° viewer stays smooth.
     await patchJob(jobId, { stage: "extracting", progress: 5 });
-    const extract = await extractFrames(finalLocalPath ?? upscaledVideoUrl).catch((err) => {
+    const extractSource = saved?.localPath ?? finalLocalPath ?? upscaledVideoUrl;
+    const extract = await extractFrames(extractSource).catch((err) => {
       // ffmpeg not available or extraction failed — log and continue without frames
       console.warn(`[worker] frame extraction skipped: ${(err as Error).message}`);
       return null;
