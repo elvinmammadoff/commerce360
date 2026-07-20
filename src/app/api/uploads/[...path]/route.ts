@@ -9,6 +9,8 @@ const CONTENT_TYPES: Record<string, string> = {
   png: "image/png",
   gif: "image/gif",
   mp4: "video/mp4",
+  glb: "model/gltf-binary",
+  gltf: "model/gltf+json",
 };
 
 export async function GET(

@@ -55,11 +55,14 @@ export async function GET(
     const videoBytes = videoPath ? await sumBytes([videoPath]) : 0;
     const frameFiles = await listFrameFiles(framesDir);
     const framesBytes = await sumBytes(frameFiles);
+    const modelPath = join(uploadsRoot, "models", id, "model.glb");
+    const modelBytes = await sumBytes([modelPath]);
     return NextResponse.json({
       video: toMb(videoBytes),
       frames: toMb(framesBytes),
       package: toMb(videoBytes + framesBytes),
       marketplace: toMb(framesBytes),
+      model: toMb(modelBytes),
     });
   }
 
@@ -74,6 +77,20 @@ export async function GET(
         "Content-Type": "video/mp4",
         "Content-Length": data.length.toString(),
         "Content-Disposition": `attachment; filename="${id}-orbit-4k.mp4"`,
+      },
+    });
+  }
+
+  if (type === "model") {
+    const modelPath = join(uploadsRoot, "models", id, "model.glb");
+    const buf = await readFile(modelPath).catch(() => null);
+    if (!buf) return new NextResponse(null, { status: 404 });
+    const data = new Uint8Array(buf);
+    return new NextResponse(data, {
+      headers: {
+        "Content-Type": "model/gltf-binary",
+        "Content-Length": data.length.toString(),
+        "Content-Disposition": `attachment; filename="${id}-3d-model.glb"`,
       },
     });
   }

@@ -1,6 +1,7 @@
 import { rm } from "fs/promises";
 import { workerFetch } from "../api";
 import type { ExtractResult } from "./extract";
+import type { Geo3DResult } from "./geo3d";
 import type { OrbitVideoResult } from "./render";
 
 export interface PackageInput {
@@ -8,6 +9,7 @@ export interface PackageInput {
   orbit: OrbitVideoResult;
   upscaledVideoUrl: string;
   extract: ExtractResult | null;
+  geo3d: Geo3DResult | null;
 }
 
 /**
@@ -51,7 +53,7 @@ async function uploadFrame(
  * and patches the product record with the full ProductAssets payload.
  */
 export async function packageAssets(input: PackageInput): Promise<void> {
-  const { productId, orbit, upscaledVideoUrl, extract } = input;
+  const { productId, orbit, upscaledVideoUrl, extract, geo3d } = input;
 
   const videoSizeMb = await headSizeMb(upscaledVideoUrl);
   const frameResolution = 3840; // 4K orbit video → 3840px wide frames
@@ -77,6 +79,7 @@ export async function packageAssets(input: PackageInput): Promise<void> {
     frameUrls: frameUrls,
     packageSizeMb: Math.round((videoSizeMb + (frameCount * 0.3)) * 10) / 10,
     marketplaceSetSizeMb: Math.round(frameCount * 0.3 * 10) / 10,
+    ...(geo3d ? { modelUrl: geo3d.servedUrl, modelSizeMb: geo3d.sizeMb } : {}),
   };
 
   const res = await workerFetch(`/api/products/${productId}`, {

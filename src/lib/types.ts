@@ -106,6 +106,9 @@ export interface ProductAssets {
   frameUrls?: string[]; // 72 individual frame URLs for image-based viewer
   packageSizeMb: number; // full ZIP download
   marketplaceSetSizeMb: number;
+  /** GLB file served from VPS — available after the modeling stage completes. */
+  modelUrl?: string;
+  modelSizeMb?: number;
 }
 
 /**
@@ -157,6 +160,7 @@ export type StageId =
   | "rendering"
   | "upscaling"
   | "extracting"
+  | "modeling"
   | "packaging";
 
 export interface StageDef {

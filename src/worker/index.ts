@@ -8,6 +8,7 @@ import { upscaleOrbitVideo } from "./stages/upscale";
 import { saveOrbitVideo } from "./stages/download";
 import { cleanVideoBackground } from "./stages/clean";
 import { extractFrames } from "./stages/extract";
+import { generate3DModel } from "./stages/geo3d";
 import { packageAssets } from "./stages/package";
 import type { Category } from "./presets";
 
@@ -94,9 +95,22 @@ async function processRenderJob(job: Job<RenderJobData>) {
     });
     await patchJob(jobId, { stage: "extracting", progress: 100 });
 
-    // Stage 5: Package — persist asset URLs and mark product completed
+    // Stage 5: Generate 3D model via Hunyuan 3D 3.1 (skips gracefully if token missing)
+    await patchJob(jobId, { stage: "modeling", progress: 5 });
+    let geo3d = null;
+    if (process.env.REPLICATE_API_TOKEN) {
+      geo3d = await generate3DModel(normalizedUrl, productId, (pct) =>
+        patchJob(jobId, { stage: "modeling", progress: 5 + Math.round(pct * 0.9) }),
+      ).catch((err) => {
+        console.warn(`[worker] 3D modeling skipped: ${(err as Error).message}`);
+        return null;
+      });
+    }
+    await patchJob(jobId, { stage: "modeling", progress: 100 });
+
+    // Stage 6: Package — persist asset URLs and mark product completed
     await patchJob(jobId, { stage: "packaging", progress: 5 });
-    await packageAssets({ productId, orbit, upscaledVideoUrl, extract });
+    await packageAssets({ productId, orbit, upscaledVideoUrl, extract, geo3d });
     await patchJob(jobId, {
       status: "completed",
       stage: "packaging",

@@ -49,6 +49,14 @@ export const PIPELINE_STAGES: StageDef[] = [
     simSeconds: 3.5,
   },
   {
+    id: "modeling",
+    label: "Generating 3D model",
+    description: "Reconstructing textured 3D geometry from the product image",
+    engine: "Hunyuan 3D 3.1",
+    typicalSeconds: 150,
+    simSeconds: 3,
+  },
+  {
     id: "packaging",
     label: "Packaging assets",
     description: "Marketplace crops, ZIP assembly, CDN upload",

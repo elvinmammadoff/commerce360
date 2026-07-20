@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import {
+  Box,
   Check,
   Download,
   FileArchive,
@@ -68,6 +69,15 @@ function buildItems(product: Product, assets: ProductAssets): DownloadItem[] {
       href: `${base}?type=marketplace`,
       filename: `${slug}-marketplace-set.zip`,
     },
+    ...(assets.modelUrl ? [{
+      id: "model",
+      icon: Box,
+      name: "3D model · GLB",
+      detail: "Textured GLTF Binary — Blender, Three.js, AR Quick Look",
+      sizeMb: assets.modelSizeMb ?? 0,
+      href: `${base}?type=model`,
+      filename: `${slug}-3d-model.glb`,
+    }] : []),
   ];
 }
 
@@ -157,6 +167,7 @@ interface SizeMeta {
   frames: number;
   package: number;
   marketplace: number;
+  model: number;
 }
 
 export function DownloadsPanel({
