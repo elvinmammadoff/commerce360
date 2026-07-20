@@ -30,6 +30,7 @@ interface DownloadItem {
 
 function buildItems(product: Product, assets: ProductAssets): DownloadItem[] {
   const slug = product.shareSlug ?? product.id;
+  const base = `/api/products/${product.id}/download`;
   return [
     {
       id: "package",
@@ -37,6 +38,8 @@ function buildItems(product: Product, assets: ProductAssets): DownloadItem[] {
       name: "Complete package",
       detail: `Orbit video, ${assets.frameCount} frames, marketplace set`,
       sizeMb: assets.packageSizeMb,
+      href: `${base}?type=package`,
+      filename: `${slug}-complete-package.zip`,
     },
     {
       id: "video",
@@ -44,7 +47,7 @@ function buildItems(product: Product, assets: ProductAssets): DownloadItem[] {
       name: `Orbit video · ${assets.videoResolution}`,
       detail: `Seamless ${assets.videoDurationSeconds}s loop · MP4 (H.265)`,
       sizeMb: assets.videoSizeMb,
-      href: assets.orbitVideoUrl,
+      href: `${base}?type=video`,
       filename: `${slug}-orbit-${assets.videoResolution.toLowerCase()}.mp4`,
     },
     {
@@ -53,6 +56,8 @@ function buildItems(product: Product, assets: ProductAssets): DownloadItem[] {
       name: `Frame set · ${assets.frameCount} stills`,
       detail: `${assets.frameResolution}×${assets.frameResolution} JPEG · ZIP`,
       sizeMb: Math.round(assets.packageSizeMb * 0.78),
+      href: `${base}?type=frames`,
+      filename: `${slug}-frames.zip`,
     },
     {
       id: "marketplace",
@@ -60,6 +65,8 @@ function buildItems(product: Product, assets: ProductAssets): DownloadItem[] {
       name: "Marketplace set",
       detail: "Amazon, Shopify, Etsy & Wayfair specs",
       sizeMb: assets.marketplaceSetSizeMb,
+      href: `${base}?type=marketplace`,
+      filename: `${slug}-marketplace-set.zip`,
     },
   ];
 }

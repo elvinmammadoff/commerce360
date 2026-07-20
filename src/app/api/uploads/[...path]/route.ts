@@ -34,6 +34,7 @@ export async function GET(
     return new NextResponse(data, {
       headers: {
         "Content-Type": contentType,
+        "Content-Length": data.length.toString(),
         "Cache-Control": "public, max-age=2592000, immutable",
         "Access-Control-Allow-Origin": "*",
       },
