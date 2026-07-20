@@ -101,7 +101,7 @@ export async function cleanVideoBackground(
     // Fewer Replicate calls, still enough angular coverage for a turntable spin.
     await execFileAsync("ffmpeg", [
       "-i", inputLocalPath,
-      "-vf", "fps=4,scale=1280:720",
+      "-vf", "fps=4,scale=1280:-2",
       "-q:v", "2",
       join(framesDir, "frame_%04d.jpg"),
       "-y",
