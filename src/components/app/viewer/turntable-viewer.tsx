@@ -161,6 +161,14 @@ export function TurntableViewer({
   // Image-mode auto-rotate via RAF
   const startImageRotate = React.useCallback(() => {
     if (!frames?.length) return;
+    // Cancel any existing loop before starting a new one.
+    // Without this, each call (e.g. parent re-render with new frames ref) spawns
+    // an extra RAF loop — all running simultaneously, advancing frameIdx multiple
+    // times per tick, which makes two frames appear to overlap.
+    if (autoRafRef.current !== null) {
+      cancelAnimationFrame(autoRafRef.current);
+      autoRafRef.current = null;
+    }
     wantPlayRef.current = true;
     setPlaying(true);
     lastFrameTimeRef.current = performance.now();
