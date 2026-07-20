@@ -64,8 +64,11 @@ export async function normalizeImage(
   const pngBuffer = Buffer.from(await res.arrayBuffer());
 
   const color = bgRgb(background);
+  const meta = await sharp(pngBuffer).metadata();
+  const side = Math.max(meta.width ?? 1000, meta.height ?? 1000);
   const jpegBuffer = await sharp(pngBuffer)
     .flatten({ background: color })
+    .resize({ width: side, height: side, fit: "contain", background: color })
     .jpeg({ quality: 92 })
     .toBuffer();
 
