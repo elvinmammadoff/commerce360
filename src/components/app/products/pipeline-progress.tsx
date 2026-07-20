@@ -19,20 +19,35 @@ export function PipelineProgress({ job }: { job: GenerationJob }) {
 
   // Track elapsed seconds for the currently active stage.
   const [elapsed, setElapsed] = React.useState(0);
+  const elapsedRef = React.useRef(0);
   const stageRef = React.useRef<string>(job.stage);
+  // Actual seconds spent per stage — populated as each stage finishes.
+  // Stages already done on mount (unknown real duration) fall back to typical estimate.
+  const [completedDurations, setCompletedDurations] = React.useState<Partial<Record<string, number>>>({});
 
   React.useEffect(() => {
-    // Reset counter whenever the stage changes.
     if (stageRef.current !== job.stage) {
+      // Stage just advanced — freeze the actual time spent on the previous stage.
+      const prevStage = stageRef.current;
+      const prevDuration = elapsedRef.current;
+      if (prevDuration > 0) {
+        setCompletedDurations((d) => ({ ...d, [prevStage]: prevDuration }));
+      }
       stageRef.current = job.stage;
+      elapsedRef.current = 0;
       setElapsed(0);
     }
-    if (job.status === "completed" || job.status === "failed") return;
-
-    const interval = window.setInterval(
-      () => setElapsed((s) => s + 1),
-      1000,
-    );
+    if (job.status === "completed" || job.status === "failed") {
+      // Job finished — freeze the last active stage's actual time.
+      if (elapsedRef.current > 0) {
+        setCompletedDurations((d) => ({ ...d, [job.stage]: elapsedRef.current }));
+      }
+      return;
+    }
+    const interval = window.setInterval(() => {
+      elapsedRef.current += 1;
+      setElapsed(elapsedRef.current);
+    }, 1000);
     return () => window.clearInterval(interval);
   }, [job.stage, job.status]);
 
@@ -47,12 +62,15 @@ export function PipelineProgress({ job }: { job: GenerationJob }) {
               : "pending";
         const isLast = idx === PIPELINE_STAGES.length - 1;
 
+        const actualDuration = completedDurations[stage.id];
         const timingLabel =
           state === "active"
             ? formatDuration(elapsed)
-            : state === "done"
-              ? `~${formatDuration(stage.typicalSeconds)}`
-              : null;
+            : state === "done" && actualDuration != null
+              ? formatDuration(actualDuration)
+              : state === "done"
+                ? `~${formatDuration(stage.typicalSeconds)}`
+                : null;
 
         return (
           <li key={stage.id} className="relative flex gap-4 pb-6 last:pb-0">
