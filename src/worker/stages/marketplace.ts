@@ -329,7 +329,8 @@ export async function generateMarketplaceSet(
 
 /**
  * Patch the product's assets with marketplace compliance data.
- * Called after generateMarketplaceSet() completes.
+ * Fetches existing assets first and merges — PATCH replaces the entire JSON
+ * column, so we must preserve frameCount, frameUrls, modelUrl, etc.
  */
 export async function patchProductMarketplace(
   productId: string,
@@ -339,10 +340,23 @@ export async function patchProductMarketplace(
   for (const [platformId, c] of Object.entries(result.complianceByPlatform)) {
     complianceScores[platformId] = c.score;
   }
+
+  let existingAssets: Record<string, unknown> = {};
+  try {
+    const existing = await workerFetch(`/api/products/${productId}`);
+    if (existing.ok) {
+      const data = await existing.json() as { assets?: Record<string, unknown> };
+      existingAssets = data.assets ?? {};
+    }
+  } catch {
+    console.warn(`[marketplace] could not fetch existing assets for ${productId}`);
+  }
+
   const res = await workerFetch(`/api/products/${productId}`, {
     method: "PATCH",
     body: JSON.stringify({
       assets: {
+        ...existingAssets,
         marketplaceReady: true,
         marketplaceScore: result.overallScore,
         marketplaceScores: complianceScores,

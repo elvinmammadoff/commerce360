@@ -195,6 +195,8 @@ export function UploadFlow({ prefill, serverCreditsBalance = 0 }: { prefill?: Pr
   const [activeProductId, setActiveProductId] = React.useState<string | null>(null);
   const [generating, setGenerating] = React.useState(false);
   const [demoAssetIndex, setDemoAssetIndex] = React.useState<number>(0);
+  // Tracks whether name/sku were auto-filled by a sample so they reset on clear.
+  const [nameFromSample, setNameFromSample] = React.useState(false);
 
   const isRetry = prefill?.status === "failed";
 
@@ -242,7 +244,8 @@ export function UploadFlow({ prefill, serverCreditsBalance = 0 }: { prefill?: Pr
         : `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
       isObjectUrl: true,
     });
-    if (!name) {
+    setNameFromSample(false);
+    if (!name || nameFromSample) {
       const base = file.name.replace(/\.[a-z0-9]+$/i, "").replace(/[-_]+/g, " ");
       setName(base.replace(/\b\w/g, (c) => c.toUpperCase()));
     }
@@ -261,6 +264,7 @@ export function UploadFlow({ prefill, serverCreditsBalance = 0 }: { prefill?: Pr
       setName(sample.name);
       setSku(sample.sku);
       setDemoAssetIndex(sample.demoAssetIndex);
+      setNameFromSample(true);
     } catch {
       toast.error("Couldn't load the sample photo");
     }
@@ -438,6 +442,11 @@ export function UploadFlow({ prefill, serverCreditsBalance = 0 }: { prefill?: Pr
             if (source?.isObjectUrl) URL.revokeObjectURL(source.previewUrl);
             setSource(null);
             setSourceFile(null);
+            if (nameFromSample) {
+              setName("");
+              setSku("");
+              setNameFromSample(false);
+            }
           }}
         />
         {!source && (
