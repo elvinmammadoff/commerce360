@@ -33,9 +33,10 @@ export async function GET(request: NextRequest) {
 
     const { token, role } = (await res.json()) as { token: string; role: string };
 
-    const response = NextResponse.redirect(`${APP_URL}/dashboard`);
+    const isAdmin = role === "admin";
+    const response = NextResponse.redirect(`${APP_URL}${isAdmin ? "/admin" : "/dashboard"}`);
     response.cookies.set(TOKEN_COOKIE, token, COOKIE_OPTS);
-    response.cookies.set(ROLE_COOKIE, role === "admin" ? "admin" : "customer", COOKIE_OPTS);
+    response.cookies.set(ROLE_COOKIE, isAdmin ? "admin" : "customer", COOKIE_OPTS);
     return response;
   } catch {
     return failed;
