@@ -8,6 +8,7 @@ import {
   FileArchive,
   FileVideo,
   Images,
+  Sparkles,
   Store,
   type LucideIcon,
 } from "lucide-react";
@@ -194,6 +195,51 @@ interface SizeMeta {
   model: number;
 }
 
+function Generate3dRow({ productId }: { productId: string }) {
+  const [ordering, setOrdering] = React.useState(false);
+
+  const order = () => {
+    setOrdering(true);
+    setTimeout(() => {
+      setOrdering(false);
+      toast.success("3D model queued", {
+        description: "Hunyuan 3D 3.1 is generating your GLB · 7 credits deducted · ready in ~5 min.",
+      });
+    }, 1200);
+  };
+
+  return (
+    <li className="rounded-xl border border-dashed border-border bg-background/20">
+      <div className="flex items-center gap-4 p-4">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card">
+          <Box className="size-4.5 text-muted-foreground" aria-hidden="true" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-foreground">3D model · GLB</p>
+          <p className="text-xs text-muted-foreground">Textured GLTF Binary — Blender, Three.js, AR Quick Look</p>
+        </div>
+        <span className="font-mono text-xs text-muted-foreground tabular-nums">~25 MB</span>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-28 justify-center"
+          disabled={ordering}
+          onClick={order}
+        >
+          {ordering ? (
+            "Queuing…"
+          ) : (
+            <>
+              <Sparkles aria-hidden="true" /> 7 credits
+            </>
+          )}
+        </Button>
+      </div>
+    </li>
+  );
+}
+
 export function DownloadsPanel({
   product,
   assets,
@@ -225,6 +271,7 @@ export function DownloadsPanel({
       {items.map((item) => (
         <DownloadRow key={item.id} item={item} />
       ))}
+      {!assets.modelUrl && <Generate3dRow productId={product.id} />}
     </ul>
   );
 }

@@ -22,6 +22,8 @@ export interface RenderJobData {
   category?: Category;
   /** Studio background choice, e.g. "Studio white". */
   background?: string;
+  /** When true, runs the Hunyuan 3D stage (costs 7 extra credits). */
+  include3d?: boolean;
 }
 
 async function processRenderJob(job: Job<RenderJobData>) {
@@ -96,10 +98,11 @@ async function processRenderJob(job: Job<RenderJobData>) {
     });
     await patchJob(jobId, { stage: "extracting", progress: 100 });
 
-    // Stage 5: Generate 3D model via Hunyuan 3D 3.1 (skips gracefully if token missing)
+    // Stage 5: Generate 3D model via Hunyuan 3D 3.1 — premium add-on only.
+    // Runs only when job.data.include3d === true (costs 7 extra credits at submission).
     await patchJob(jobId, { stage: "modeling", progress: 5 });
     let geo3d = null;
-    if (process.env.REPLICATE_API_TOKEN) {
+    if (job.data.include3d && process.env.REPLICATE_API_TOKEN) {
       geo3d = await generate3DModel(normalizedUrl, productId, (pct) =>
         patchJob(jobId, { stage: "modeling", progress: 5 + Math.round(pct * 0.9) }),
       ).catch((err) => {

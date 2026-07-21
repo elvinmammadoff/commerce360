@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CircleAlert, ImageUp, Sparkles, X } from "lucide-react";
+import { ArrowRight, Box, CircleAlert, ImageUp, Sparkles, X } from "lucide-react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
 
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { guessCategory } from "@/lib/detect-category";
 import { getVideoPoster } from "@/lib/media/video-frames";
 import { useSimulation } from "@/lib/simulation/provider";
@@ -195,6 +196,7 @@ export function UploadFlow({ prefill, serverCreditsBalance = 0 }: { prefill?: Pr
   const [activeProductId, setActiveProductId] = React.useState<string | null>(null);
   const [generating, setGenerating] = React.useState(false);
   const [demoAssetIndex, setDemoAssetIndex] = React.useState<number>(0);
+  const [include3d, setInclude3d] = React.useState(false);
   // Tracks whether name/sku were auto-filled by a sample so they reset on clear.
   const [nameFromSample, setNameFromSample] = React.useState(false);
 
@@ -272,8 +274,9 @@ export function UploadFlow({ prefill, serverCreditsBalance = 0 }: { prefill?: Pr
 
   // Use real server balance for the generate gate; sim balance as fallback for demo mode.
   const effectiveCredits = Math.max(serverCreditsBalance, sim.creditsBalance);
+  const creditCost = include3d ? 8 : 1;
   const canGenerate =
-    source !== null && name.trim().length > 1 && (isRetry || effectiveCredits > 0) && !generating;
+    source !== null && name.trim().length > 1 && (isRetry || effectiveCredits >= creditCost) && !generating;
 
   const activeSimJob = sim.jobs.find(
     (j) => j.status === "queued" || j.status === "running",
@@ -296,6 +299,7 @@ export function UploadFlow({ prefill, serverCreditsBalance = 0 }: { prefill?: Pr
         fd.append("background", background);
         fd.append("resolution", resolution);
         fd.append("category", category);
+        if (include3d) fd.append("include3d", "true");
 
         const res = await fetch("/api/products/start", { method: "POST", body: fd });
         const data = await res.json() as { productId?: string; error?: string };
@@ -310,7 +314,7 @@ export function UploadFlow({ prefill, serverCreditsBalance = 0 }: { prefill?: Pr
         }
 
         toast.info("Render started", {
-          description: `${name.trim()} entered the pipeline · 1 credit used.`,
+          description: `${name.trim()} entered the pipeline · ${creditCost} credit${creditCost > 1 ? "s" : ""} used.`,
         });
         router.push(`/products/${data.productId}`);
       } catch {
@@ -581,14 +585,29 @@ export function UploadFlow({ prefill, serverCreditsBalance = 0 }: { prefill?: Pr
           </div>
 
           <div className="space-y-3 border-t border-border pt-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Box className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">3D model add-on</p>
+                  <p className="text-[11px] text-muted-foreground">GLB · Blender, Three.js, AR — +7 credits</p>
+                </div>
+              </div>
+              <Switch
+                id="include3d"
+                checked={include3d}
+                onCheckedChange={setInclude3d}
+                aria-label="Include 3D model generation"
+              />
+            </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Cost</span>
-              <span className="font-medium">1 credit</span>
+              <span className="font-medium">{creditCost} credit{creditCost > 1 ? "s" : ""}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Balance after</span>
               <span className="font-medium tabular-nums">
-                {Math.max(0, effectiveCredits - 1)} credits
+                {Math.max(0, effectiveCredits - creditCost)} credits
               </span>
             </div>
             <Button
@@ -600,7 +619,7 @@ export function UploadFlow({ prefill, serverCreditsBalance = 0 }: { prefill?: Pr
               <Sparkles aria-hidden="true" />
               {generating ? "Uploading…" : "Generate 360° assets"}
             </Button>
-            {effectiveCredits === 0 && !isRetry && (
+            {effectiveCredits < creditCost && !isRetry && (
               activeSimJob ? (
                 <p className="text-center text-xs text-muted-foreground">
                   Render in progress —{" "}
@@ -613,11 +632,11 @@ export function UploadFlow({ prefill, serverCreditsBalance = 0 }: { prefill?: Pr
                 </p>
               ) : (
                 <p className="text-center text-xs text-destructive">
-                  You&apos;re out of credits —{" "}
+                  {effectiveCredits < 1 ? "You're out of credits" : `Need ${creditCost} credits for 3D add-on`} —{" "}
                   <Link href="/credits" className="underline underline-offset-2">
                     buy more
-                  </Link>{" "}
-                  to keep rendering.
+                  </Link>
+                  .
                 </p>
               )
             )}
