@@ -2,21 +2,19 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { CreditCard, Receipt, TriangleAlert } from "lucide-react";
+import { CreditCard, Loader2, Receipt, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 
 import { BuyCreditsDialog } from "@/components/app/credits/buy-credits-dialog";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +28,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { deleteWorkspace } from "@/lib/auth-actions";
 import { useUser } from "@/lib/user-context";
 import type { CreditPack, PaymentMethod, Workspace } from "@/lib/types";
 
@@ -231,6 +230,20 @@ function BillingCard({
 }
 
 function DangerZoneCard({ workspace }: { workspace: Workspace }) {
+  const [open, setOpen] = React.useState(false);
+  const [confirm, setConfirm] = React.useState("");
+  const [pending, startTransition] = React.useTransition();
+  const canDelete = confirm === workspace.name;
+
+  const handleDelete = () => {
+    startTransition(async () => {
+      const result = await deleteWorkspace();
+      if (result?.error) {
+        toast.error(result.error);
+      }
+    });
+  };
+
   return (
     <Card className="border-destructive/30">
       <CardHeader>
@@ -243,33 +256,58 @@ function DangerZoneCard({ workspace }: { workspace: Workspace }) {
         </CardDescription>
       </CardHeader>
       <CardFooter>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
+        <Dialog
+          open={open}
+          onOpenChange={(v) => {
+            setOpen(v);
+            if (!v) setConfirm("");
+          }}
+        >
+          <DialogTrigger asChild>
             <Button variant="destructive" size="sm">
               Delete workspace
             </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete {workspace.name}?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This permanently deletes all products, generated assets, and
-                every live share page. This cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                className="bg-destructive text-white hover:bg-destructive/90"
-                onClick={() =>
-                  toast.info("Workspace deletion requires owner email confirmation")
-                }
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Delete workspace</DialogTitle>
+              <DialogDescription>
+                This will permanently delete{" "}
+                <span className="font-medium text-foreground">{workspace.name}</span>{" "}
+                and all its products, generated assets, and share pages.
+                This cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2 py-2">
+              <Label htmlFor="delete-confirm" className="text-sm">
+                To confirm, type{" "}
+                <span className="font-semibold text-foreground">
+                  {workspace.name}
+                </span>
+              </Label>
+              <Input
+                id="delete-confirm"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                placeholder={workspace.name}
+                autoComplete="off"
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                disabled={!canDelete || pending}
+                onClick={handleDelete}
               >
+                {pending && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
                 Delete workspace
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardFooter>
     </Card>
   );

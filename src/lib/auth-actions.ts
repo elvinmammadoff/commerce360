@@ -169,6 +169,32 @@ export async function exchangeGoogleCode(code: string): Promise<void> {
   store.set(ROLE_COOKIE, (role === "admin" ? "admin" : "customer") as AppRole, cookieOpts);
 }
 
+export async function deleteWorkspace(): Promise<{ error: string } | never> {
+  const store = await cookies();
+  const token = store.get(TOKEN_COOKIE)?.value;
+
+  if (!token) redirect("/login");
+
+  const res = await fetch(`${API_BASE}/api/workspace`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    return {
+      error: (data as { message?: string }).message ?? "Failed to delete workspace",
+    };
+  }
+
+  store.delete(TOKEN_COOKIE);
+  store.delete(ROLE_COOKIE);
+  redirect("/login");
+}
+
 export async function signOut(): Promise<void> {
   const store = await cookies();
   const token = store.get(TOKEN_COOKIE)?.value;
