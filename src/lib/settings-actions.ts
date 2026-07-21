@@ -41,3 +41,51 @@ export async function updateNotificationPreferences(
 
   return null;
 }
+
+export async function updateProfile(
+  name: string,
+): Promise<{ error: string } | null> {
+  const token = await getToken();
+  if (!token) return { error: "Unauthenticated" };
+
+  const res = await fetch(`${API_BASE}/api/user`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ name }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    return { error: (data as { message?: string }).message ?? "Failed to save profile" };
+  }
+
+  return null;
+}
+
+export async function updateWorkspaceName(
+  name: string,
+): Promise<{ error: string } | null> {
+  const token = await getToken();
+  if (!token) return { error: "Unauthenticated" };
+
+  const res = await fetch(`${API_BASE}/api/workspace`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ name }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    return { error: (data as { message?: string }).message ?? "Failed to update workspace" };
+  }
+
+  return null;
+}

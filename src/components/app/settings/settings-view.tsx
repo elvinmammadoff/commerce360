@@ -29,13 +29,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { deleteWorkspace } from "@/lib/auth-actions";
-import { updateNotificationPreferences } from "@/lib/settings-actions";
+import {
+  updateNotificationPreferences,
+  updateProfile,
+  updateWorkspaceName,
+} from "@/lib/settings-actions";
 import { useUser } from "@/lib/user-context";
 import type { CreditPack, NotificationPreferences, PaymentMethod, Workspace } from "@/lib/types";
 
 function ProfileCard() {
   const { user, updateUser } = useUser();
   const [name, setName] = React.useState(user.name);
+  const [pending, startTransition] = React.useTransition();
 
   const initials = name
     .split(" ")
@@ -46,8 +51,16 @@ function ProfileCard() {
     .toUpperCase();
 
   const save = () => {
-    updateUser({ name: name.trim() });
-    toast.success("Profile saved");
+    const trimmed = name.trim();
+    startTransition(async () => {
+      const result = await updateProfile(trimmed);
+      if (result?.error) {
+        toast.error(result.error);
+      } else {
+        updateUser({ name: trimmed });
+        toast.success("Profile saved");
+      }
+    });
   };
 
   return (
@@ -78,7 +91,8 @@ function ProfileCard() {
         </div>
       </CardContent>
       <CardFooter className="justify-end border-t border-border">
-        <Button size="sm" onClick={save} disabled={name.trim().length < 2}>
+        <Button size="sm" onClick={save} disabled={name.trim().length < 2 || pending}>
+          {pending && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
           Save changes
         </Button>
       </CardFooter>
@@ -88,6 +102,20 @@ function ProfileCard() {
 
 function WorkspaceCard({ workspace }: { workspace: Workspace }) {
   const [name, setName] = React.useState(workspace.name);
+  const [pending, startTransition] = React.useTransition();
+
+  const save = () => {
+    const trimmed = name.trim();
+    startTransition(async () => {
+      const result = await updateWorkspaceName(trimmed);
+      if (result?.error) {
+        toast.error(result.error);
+        setName(workspace.name);
+      } else {
+        toast.success("Workspace updated");
+      }
+    });
+  };
 
   return (
     <Card>
@@ -104,7 +132,8 @@ function WorkspaceCard({ workspace }: { workspace: Workspace }) {
         />
       </CardContent>
       <CardFooter className="justify-end border-t border-border">
-        <Button size="sm" onClick={() => toast.success("Workspace updated")}>
+        <Button size="sm" onClick={save} disabled={name.trim().length < 1 || pending}>
+          {pending && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
           Save changes
         </Button>
       </CardFooter>
