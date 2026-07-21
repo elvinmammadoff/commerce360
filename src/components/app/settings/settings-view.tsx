@@ -23,7 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -98,7 +98,7 @@ function ProfileCard() {
       <CardContent className="space-y-4">
         <div className="flex items-center gap-4">
           <Avatar className="size-14">
-            {user.avatarUrl && <img src={user.avatarUrl} alt={name} className="size-full rounded-full object-cover" />}
+            {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={name} />}
             <AvatarFallback className="bg-secondary text-lg font-medium">
               {initials}
             </AvatarFallback>
