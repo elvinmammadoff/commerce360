@@ -268,6 +268,13 @@ export interface NotificationItem {
   href?: string;
 }
 
+export interface NotificationPreferences {
+  renderComplete: boolean;
+  renderFailed: boolean;
+  weeklyDigest: boolean;
+  productNews: boolean;
+}
+
 // ---------------------------------------------------------------------------
 // API access
 // ---------------------------------------------------------------------------

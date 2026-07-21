@@ -19,6 +19,7 @@ import type {
   JobStatus,
   MonthlyRenderPoint,
   NotificationItem,
+  NotificationPreferences,
   PaymentMethod,
   Product,
   ProductAssets,
@@ -377,6 +378,25 @@ export async function getNotifications(): Promise<NotificationItem[]> {
     return data;
   } catch {
     return [];
+  }
+}
+
+export async function getNotificationPreferences(): Promise<NotificationPreferences> {
+  try {
+    const data = await apiJson<{
+      render_complete: boolean;
+      render_failed: boolean;
+      weekly_digest: boolean;
+      product_news: boolean;
+    }>("/api/notification-preferences");
+    return {
+      renderComplete: data.render_complete,
+      renderFailed: data.render_failed,
+      weeklyDigest: data.weekly_digest,
+      productNews: data.product_news,
+    };
+  } catch {
+    return { renderComplete: true, renderFailed: true, weeklyDigest: true, productNews: false };
   }
 }
 

@@ -29,8 +29,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { deleteWorkspace } from "@/lib/auth-actions";
+import { updateNotificationPreferences } from "@/lib/settings-actions";
 import { useUser } from "@/lib/user-context";
-import type { CreditPack, PaymentMethod, Workspace } from "@/lib/types";
+import type { CreditPack, NotificationPreferences, PaymentMethod, Workspace } from "@/lib/types";
 
 function ProfileCard() {
   const { user, updateUser } = useUser();
@@ -111,35 +112,46 @@ function WorkspaceCard({ workspace }: { workspace: Workspace }) {
   );
 }
 
-const NOTIFICATION_PREFS = [
+const PREF_ROWS: {
+  key: keyof NotificationPreferences;
+  label: string;
+  description: string;
+}[] = [
   {
-    id: "render-complete",
+    key: "renderComplete",
     label: "Render completed",
     description: "Email + in-app when a product finishes rendering",
-    defaultOn: true,
   },
   {
-    id: "render-failed",
+    key: "renderFailed",
     label: "Render failed",
     description: "Immediate alert with the failure reason and refund note",
-    defaultOn: true,
   },
   {
-    id: "weekly-digest",
+    key: "weeklyDigest",
     label: "Weekly digest",
     description: "Credit usage summary, every Monday",
-    defaultOn: true,
   },
   {
-    id: "product-news",
+    key: "productNews",
     label: "Product updates",
     description: "New pipeline models and marketplace formats",
-    defaultOn: false,
   },
 ];
 
-function NotificationsCard() {
+function NotificationsCard({ prefs }: { prefs: NotificationPreferences }) {
   const { user } = useUser();
+  const [values, setValues] = React.useState<NotificationPreferences>(prefs);
+
+  const handleChange = async (key: keyof NotificationPreferences, checked: boolean) => {
+    setValues((prev) => ({ ...prev, [key]: checked }));
+    const result = await updateNotificationPreferences({ [key]: checked });
+    if (result?.error) {
+      setValues((prev) => ({ ...prev, [key]: !checked }));
+      toast.error(result.error);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -147,27 +159,23 @@ function NotificationsCard() {
         <CardDescription>Delivered to {user.email}</CardDescription>
       </CardHeader>
       <CardContent className="divide-y divide-border">
-        {NOTIFICATION_PREFS.map((pref) => (
+        {PREF_ROWS.map((row) => (
           <div
-            key={pref.id}
+            key={row.key}
             className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
           >
             <div>
-              <Label htmlFor={pref.id} className="text-sm font-medium">
-                {pref.label}
+              <Label htmlFor={row.key} className="text-sm font-medium">
+                {row.label}
               </Label>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {pref.description}
+                {row.description}
               </p>
             </div>
             <Switch
-              id={pref.id}
-              defaultChecked={pref.defaultOn}
-              onCheckedChange={(checked) =>
-                toast.success(
-                  `${pref.label} notifications ${checked ? "on" : "off"}`,
-                )
-              }
+              id={row.key}
+              checked={values[row.key]}
+              onCheckedChange={(checked) => void handleChange(row.key, checked)}
             />
           </div>
         ))}
@@ -317,17 +325,19 @@ export function SettingsView({
   workspace,
   paymentMethod,
   packs,
+  notificationPrefs,
 }: {
   workspace: Workspace;
   paymentMethod: PaymentMethod | null;
   packs: CreditPack[];
+  notificationPrefs: NotificationPreferences;
 }) {
   return (
     <div className="space-y-6">
       <ProfileCard />
       <WorkspaceCard workspace={workspace} />
       <BillingCard paymentMethod={paymentMethod} packs={packs} />
-      <NotificationsCard />
+      <NotificationsCard prefs={notificationPrefs} />
       <DangerZoneCard workspace={workspace} />
     </div>
   );

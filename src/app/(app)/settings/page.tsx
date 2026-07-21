@@ -4,6 +4,7 @@ import { SettingsView } from "@/components/app/settings/settings-view";
 import { PageHeader } from "@/components/shared/page-header";
 import {
   getCreditPacks,
+  getNotificationPreferences,
   getPaymentMethod,
   getWorkspace,
 } from "@/lib/data";
@@ -13,10 +14,11 @@ export const metadata: Metadata = {
 };
 
 export default async function SettingsPage() {
-  const [workspace, paymentMethod, packs] = await Promise.all([
+  const [workspace, paymentMethod, packs, notificationPrefs] = await Promise.all([
     getWorkspace(),
     getPaymentMethod(),
     getCreditPacks(),
+    getNotificationPreferences(),
   ]);
 
   return (
@@ -29,6 +31,7 @@ export default async function SettingsPage() {
         workspace={workspace}
         paymentMethod={paymentMethod}
         packs={packs}
+        notificationPrefs={notificationPrefs}
       />
     </div>
   );
