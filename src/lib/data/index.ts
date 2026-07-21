@@ -224,7 +224,12 @@ export async function getCurrentUser(): Promise<CurrentUser> {
 }
 
 export async function getTeamMembers(): Promise<TeamMember[]> {
-  return teamMembers;
+  try {
+    const data = await apiJson<TeamMember[]>("/api/workspace/members");
+    return data;
+  } catch {
+    return [];
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -367,7 +372,12 @@ export async function getActivity(): Promise<ActivityEvent[]> {
 }
 
 export async function getNotifications(): Promise<NotificationItem[]> {
-  return notifications;
+  try {
+    const data = await apiJson<NotificationItem[]>("/api/notifications");
+    return data;
+  } catch {
+    return [];
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -375,7 +385,12 @@ export async function getNotifications(): Promise<NotificationItem[]> {
 // ---------------------------------------------------------------------------
 
 export async function getApiKeys(): Promise<ApiKey[]> {
-  return apiKeys;
+  try {
+    const data = await apiJson<ApiKey[]>("/api/api-keys");
+    return data;
+  } catch {
+    return [];
+  }
 }
 
 export async function getApiEndpoints(): Promise<ApiEndpoint[]> {
