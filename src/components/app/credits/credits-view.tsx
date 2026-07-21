@@ -97,8 +97,10 @@ export function CreditsView({
             {[
               "Interactive 360° viewer + embed",
               "Seamless orbit video up to 4K",
-              "72 studio frames at 5° steps",
-              "Amazon / Shopify / Etsy set",
+              "72 studio frames at 3840×3840",
+              "6-platform marketplace set (Amazon, Shopify, Etsy, Wayfair, Trendyol, Hepsiburada)",
+              "Compliance score per platform",
+              "3D model add-on available (+7 credits)",
             ].map((line) => (
               <p key={line} className="flex items-center gap-2.5">
                 <Sparkles className="size-3.5 text-brand" aria-hidden="true" />
