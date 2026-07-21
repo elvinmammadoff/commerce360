@@ -27,8 +27,8 @@ const FOOTER_COLUMNS = [
     links: [
       { label: "Documentation", href: "/api" },
       { label: "FAQ", href: "/#faq" },
-      { label: "Support", href: "mailto:support@commerce360.ai" },
-      { label: "Sales", href: "mailto:sales@commerce360.ai" },
+      { label: "Support", href: "mailto:support@orbittify.com" },
+      { label: "Sales", href: "mailto:sales@orbittify.com" },
     ],
   },
   {

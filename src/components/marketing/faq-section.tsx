@@ -46,10 +46,10 @@ export function FaqSection({ items }: { items: Faq[] }) {
             <p className="mt-6 text-base leading-7 text-muted-foreground/70">
               Anything else? Write to{" "}
               <a
-                href="mailto:support@commerce360.ai"
+                href="mailto:support@orbittify.com"
                 className="font-medium text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-brand"
               >
-                support@commerce360.ai
+                support@orbittify.com
               </a>{" "}
               — a human replies within a business day.
             </p>

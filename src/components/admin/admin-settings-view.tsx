@@ -348,7 +348,7 @@ function InviteStaffDialog() {
           <Input
             id="staff-email"
             type="email"
-            placeholder="teammate@commerce360.ai"
+            placeholder="teammate@orbittify.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && invite()}

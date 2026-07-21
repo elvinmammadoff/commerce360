@@ -222,7 +222,7 @@ export function Features() {
               </div>
             </div>
             <CellText icon={Images} title="72 studio frames" tint={FEATURE_TINTS[2]}>
-              Every 5° at 2048² and up, color-matched to the source photo. Pick
+              Every 5° at 3840×3840, color-matched to the source photo. Pick
               hero angles in seconds.
             </CellText>
           </Cell>
@@ -230,7 +230,7 @@ export function Features() {
           {/* Marketplace sets — spec chips */}
           <Cell index={3} className="lg:col-start-1 lg:col-end-3 lg:row-start-3">
             <div className="flex flex-1 flex-wrap content-start gap-1.5 px-6 pt-6">
-              {["Amazon", "Shopify", "Etsy", "Wayfair"].map((m, i) => (
+              {["Amazon", "Shopify", "Etsy", "Wayfair", "Trendyol", "Hepsiburada"].map((m, i) => (
                 <motion.span
                   key={m}
                   {...(reduceMotion

@@ -33,7 +33,7 @@ export const currentUser: CurrentUser = {
 export const adminAccount: CurrentUser = {
   id: "usr_staff_jonas",
   name: "Jonas Weber",
-  email: "jonas@commerce360.ai",
+  email: "jonas@orbittify.com",
   title: "Platform Operations",
   initials: "JW",
   role: "owner",
@@ -45,7 +45,7 @@ export const adminStaff: TeamMember[] = [
   {
     id: "staff_01",
     name: "Jonas Weber",
-    email: "jonas@commerce360.ai",
+    email: "jonas@orbittify.com",
     role: "owner",
     initials: "JW",
     status: "active",
@@ -54,7 +54,7 @@ export const adminStaff: TeamMember[] = [
   {
     id: "staff_02",
     name: "Elena Fischer",
-    email: "elena@commerce360.ai",
+    email: "elena@orbittify.com",
     role: "admin",
     initials: "EF",
     status: "active",
@@ -63,7 +63,7 @@ export const adminStaff: TeamMember[] = [
   {
     id: "staff_03",
     name: "Tomas Lindgren",
-    email: "tomas@commerce360.ai",
+    email: "tomas@orbittify.com",
     role: "member",
     initials: "TL",
     status: "invited",

@@ -34,7 +34,7 @@ export function PricingSection({
         <SectionHeader
           eyebrow="Pricing"
           title={heading}
-          description="One credit = one complete pipeline render (Flux 2 → Seedance → SeeDVR → 72 frames → 4K video → Share page). Buy only what you need."
+          description="One credit = one complete pipeline render (BG removal → orbit video → 4K upscale → 72 frames → marketplace set → share page). Buy only what you need."
         />
 
         <div className="mx-auto mt-14 grid max-w-screen-xl items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4">

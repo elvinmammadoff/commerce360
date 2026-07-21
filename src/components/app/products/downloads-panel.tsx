@@ -169,14 +169,15 @@ function DownloadRow({ item }: { item: DownloadItem }) {
       </Button>
       </div>
       {scores && Object.keys(scores).length > 0 && (
-        <div className="flex flex-wrap gap-x-4 gap-y-1 border-t border-border px-4 py-2">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border px-4 py-2">
+          <span className="text-xs text-muted-foreground">Compliance:</span>
           {Object.entries(scores).map(([platform, score]) => (
             <span key={platform} className="flex items-center gap-1 text-xs text-muted-foreground">
               <span
                 className={`inline-block size-1.5 rounded-full ${score >= 90 ? "bg-success" : score >= 70 ? "bg-amber-500" : "bg-destructive"}`}
               />
               <span className="capitalize">{platform}</span>
-              <span className="font-mono font-medium text-foreground">{score}</span>
+              <span className="font-mono font-medium text-foreground">{score}<span className="text-muted-foreground font-normal">/100</span></span>
             </span>
           ))}
         </div>

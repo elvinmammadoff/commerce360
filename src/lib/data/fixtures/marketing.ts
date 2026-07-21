@@ -64,7 +64,7 @@ export const faqs: Faq[] = [
   {
     question: "What exactly do I get from one photo?",
     answer:
-      "Each render produces an interactive 360° viewer with embed code, a seamless orbit video (up to 4K), 72 studio frames at 5° intervals, and marketplace-ready image sets for Amazon, Shopify, Etsy, and Wayfair — bundled into one downloadable package.",
+      "Each render produces an interactive 360° viewer with embed code, a seamless orbit video (up to 4K), 72 studio frames at 5° intervals, and marketplace-ready image sets for Amazon, Shopify, Etsy, Wayfair, Trendyol, and Hepsiburada — bundled into one downloadable package.",
   },
   {
     question: "What makes a good source photo?",
@@ -99,7 +99,7 @@ export const faqs: Faq[] = [
   {
     question: "How do the marketplace image sets work?",
     answer:
-      "We export to each marketplace's spec automatically: pure-white backgrounds and 2000px+ squares for Amazon, 2048² for Shopify, plus lifestyle-ready angles. No manual cropping.",
+      "We export to all 6 platforms automatically — Amazon, Shopify, Etsy, Wayfair, Trendyol, and Hepsiburada — with pure-white backgrounds, platform-correct dimensions, and a compliance score so you know how each image performs. No manual cropping.",
   },
   {
     question: "Is there an API?",
