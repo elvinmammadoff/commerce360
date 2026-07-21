@@ -109,6 +109,10 @@ export interface ProductAssets {
   /** GLB file served from VPS — available after the modeling stage completes. */
   modelUrl?: string;
   modelSizeMb?: number;
+  /** Marketplace compliance — set after background marketplace generation finishes. */
+  marketplaceReady?: boolean;
+  marketplaceScore?: number;
+  marketplaceScores?: Record<string, number>;
 }
 
 /**

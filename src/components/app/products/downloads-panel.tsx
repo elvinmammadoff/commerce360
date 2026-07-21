@@ -27,6 +27,7 @@ interface DownloadItem {
   /** Real file to hand the browser (the orbit video is genuinely local). */
   href?: string;
   filename?: string;
+  complianceScores?: Record<string, number>;
 }
 
 function buildItems(product: Product, assets: ProductAssets): DownloadItem[] {
@@ -64,10 +65,13 @@ function buildItems(product: Product, assets: ProductAssets): DownloadItem[] {
       id: "marketplace",
       icon: Store,
       name: "Marketplace set",
-      detail: "Amazon, Shopify, Etsy & Wayfair specs",
+      detail: assets.marketplaceReady
+        ? `6 platforms · white bg · compliance score ${assets.marketplaceScore ?? 0}/100`
+        : "Amazon, Shopify, Etsy, Wayfair, Trendyol, Hepsiburada · generating…",
       sizeMb: assets.marketplaceSetSizeMb,
-      href: `${base}?type=marketplace`,
+      href: assets.marketplaceReady ? `${base}?type=marketplace` : undefined,
       filename: `${slug}-marketplace-set.zip`,
+      complianceScores: assets.marketplaceScores,
     },
     ...(assets.modelUrl ? [{
       id: "model",
@@ -119,22 +123,25 @@ function DownloadRow({ item }: { item: DownloadItem }) {
     requestAnimationFrame(tick);
   };
 
+  const scores = item.complianceScores;
+
   return (
-    <li className="flex items-center gap-4 rounded-xl border border-border bg-background/40 p-4">
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card">
-        <item.icon className="size-4.5 text-muted-foreground" aria-hidden="true" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-foreground">{item.name}</p>
-        <p className="truncate text-xs text-muted-foreground">{item.detail}</p>
-        {state === "preparing" && (
-          <Progress
-            value={progress}
-            className="mt-2 h-1"
-            aria-label={`Preparing ${item.name}`}
-          />
-        )}
-      </div>
+    <li className="rounded-xl border border-border bg-background/40">
+      <div className="flex items-center gap-4 p-4">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card">
+          <item.icon className="size-4.5 text-muted-foreground" aria-hidden="true" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-foreground">{item.name}</p>
+          <p className="truncate text-xs text-muted-foreground">{item.detail}</p>
+          {state === "preparing" && (
+            <Progress
+              value={progress}
+              className="mt-2 h-1"
+              aria-label={`Preparing ${item.name}`}
+            />
+          )}
+        </div>
       <span className="font-mono text-xs text-muted-foreground tabular-nums">
         {formatSizeMb(item.sizeMb)}
       </span>
@@ -144,7 +151,7 @@ function DownloadRow({ item }: { item: DownloadItem }) {
         size="sm"
         className="w-28 justify-center"
         onClick={start}
-        disabled={state === "preparing"}
+        disabled={state === "preparing" || (!item.href && state === "idle")}
       >
         {state === "preparing" ? (
           `${Math.round(progress)}%`
@@ -152,12 +159,28 @@ function DownloadRow({ item }: { item: DownloadItem }) {
           <>
             <Check aria-hidden="true" /> Ready
           </>
+        ) : !item.href ? (
+          "Generating…"
         ) : (
           <>
             <Download aria-hidden="true" /> Download
           </>
         )}
       </Button>
+      </div>
+      {scores && Object.keys(scores).length > 0 && (
+        <div className="flex flex-wrap gap-x-4 gap-y-1 border-t border-border px-4 py-2">
+          {Object.entries(scores).map(([platform, score]) => (
+            <span key={platform} className="flex items-center gap-1 text-xs text-muted-foreground">
+              <span
+                className={`inline-block size-1.5 rounded-full ${score >= 90 ? "bg-success" : score >= 70 ? "bg-amber-500" : "bg-destructive"}`}
+              />
+              <span className="capitalize">{platform}</span>
+              <span className="font-mono font-medium text-foreground">{score}</span>
+            </span>
+          ))}
+        </div>
+      )}
     </li>
   );
 }

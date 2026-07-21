@@ -57,11 +57,13 @@ export async function GET(
     const framesBytes = await sumBytes(frameFiles);
     const modelPath = join(uploadsRoot, "models", id, "model.glb");
     const modelBytes = await sumBytes([modelPath]);
+    const marketplaceZip = join(uploadsRoot, "marketplace", id, "marketplace-set.zip");
+    const marketplaceBytes = await sumBytes([marketplaceZip]);
     return NextResponse.json({
       video: toMb(videoBytes),
       frames: toMb(framesBytes),
       package: toMb(videoBytes + framesBytes),
-      marketplace: toMb(framesBytes),
+      marketplace: toMb(marketplaceBytes),
       model: toMb(modelBytes),
     });
   }
@@ -95,7 +97,22 @@ export async function GET(
     });
   }
 
-  // frames, package, marketplace — all produce a ZIP
+  // Marketplace — serve pre-built ZIP from disk (generated post-completion)
+  if (type === "marketplace") {
+    const marketplaceZip = join(uploadsRoot, "marketplace", id, "marketplace-set.zip");
+    const buf = await readFile(marketplaceZip).catch(() => null);
+    if (!buf) return new NextResponse(null, { status: 404 });
+    const data = new Uint8Array(buf);
+    return new NextResponse(data, {
+      headers: {
+        "Content-Type": "application/zip",
+        "Content-Length": data.length.toString(),
+        "Content-Disposition": `attachment; filename="${id}-marketplace-set.zip"`,
+      },
+    });
+  }
+
+  // frames, package — produce a ZIP on demand
   const frameFiles = await listFrameFiles(framesDir);
   const filesToZip: string[] = [];
 

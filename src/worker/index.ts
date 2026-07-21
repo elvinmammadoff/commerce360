@@ -9,6 +9,7 @@ import { saveOrbitVideo } from "./stages/download";
 import { cleanVideoBackground } from "./stages/clean";
 import { extractFrames } from "./stages/extract";
 import { generate3DModel } from "./stages/geo3d";
+import { generateMarketplaceSet, patchProductMarketplace } from "./stages/marketplace";
 import { packageAssets } from "./stages/package";
 import type { Category } from "./presets";
 
@@ -119,6 +120,18 @@ async function processRenderJob(job: Job<RenderJobData>) {
     });
 
     console.log(`[worker] job ${jobId} completed → product ${productId}`);
+
+    // Post-completion: generate marketplace set in background.
+    // Product is already marked "completed" — user can view orbit video now.
+    // Errors here are non-fatal; marketplace just won't be available.
+    if (process.env.REPLICATE_API_TOKEN) {
+      const frameCount = extract?.frameCount ?? 72;
+      generateMarketplaceSet(productId, frameCount)
+        .then((result) => patchProductMarketplace(productId, result))
+        .catch((err) =>
+          console.warn(`[worker] marketplace generation failed: ${(err as Error).message}`),
+        );
+    }
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error(`[worker] job ${jobId} failed:`, message);
