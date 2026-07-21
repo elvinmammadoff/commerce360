@@ -56,7 +56,7 @@ export function BillingView({
   workspace: Workspace;
   packs: CreditPack[];
   purchases: Purchase[];
-  paymentMethod: PaymentMethod;
+  paymentMethod: PaymentMethod | null;
 }) {
   const sim = useSimulation();
 
@@ -110,15 +110,19 @@ export function BillingView({
             <div className="flex h-10 w-14 items-center justify-center rounded-md border border-border bg-card">
               <CreditCard className="size-5 text-muted-foreground" aria-hidden="true" />
             </div>
-            <div>
-              <p className="text-sm font-medium capitalize">
-                {paymentMethod.brand} ·· {paymentMethod.last4}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Expires {String(paymentMethod.expMonth).padStart(2, "0")}/
-                {paymentMethod.expYear}
-              </p>
-            </div>
+            {paymentMethod ? (
+              <div>
+                <p className="text-sm font-medium capitalize">
+                  {paymentMethod.brand} ·· {paymentMethod.last4}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Expires {String(paymentMethod.expMonth).padStart(2, "0")}/
+                  {paymentMethod.expYear}
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No card on file</p>
+            )}
           </CardContent>
           <CardFooter className="flex-col items-stretch gap-2">
             <Button

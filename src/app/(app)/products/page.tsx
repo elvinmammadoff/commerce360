@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ProductsPage() {
-  const products = await getProducts();
+  const products = await getProducts().catch(() => []);
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6">

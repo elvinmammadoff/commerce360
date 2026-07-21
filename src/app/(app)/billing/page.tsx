@@ -25,7 +25,7 @@ export default async function BillingPage() {
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
       <PageHeader
         title="Billing"
-        description="Credit wallet, payment method, and purchase history for the Fernhaven Home workspace."
+        description={`Credit wallet, payment method, and purchase history for the ${workspace.name} workspace.`}
       />
       <BillingView
         workspace={workspace}

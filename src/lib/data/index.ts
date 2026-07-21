@@ -281,15 +281,19 @@ export async function getActiveJobs(): Promise<GenerationJob[]> {
 // ---------------------------------------------------------------------------
 
 export async function getCreditLedger(): Promise<CreditEntry[]> {
-  const data = await apiJson<RawLedgerEntry[]>("/api/credits/ledger");
-  return data.map((e) => ({
-    id: e.id,
-    type: e.type as CreditEntryType,
-    description: e.description ?? "",
-    amount: e.amount,
-    balanceAfter: e.balance_after,
-    createdAt: toUtcIso(e.created_at),
-  }));
+  try {
+    const data = await apiJson<RawLedgerEntry[]>("/api/credits/ledger");
+    return data.map((e) => ({
+      id: e.id,
+      type: e.type as CreditEntryType,
+      description: e.description ?? "",
+      amount: e.amount,
+      balanceAfter: e.balance_after,
+      createdAt: toUtcIso(e.created_at),
+    }));
+  } catch {
+    return [];
+  }
 }
 
 export async function getCreditPacks(): Promise<CreditPack[]> {
@@ -297,11 +301,21 @@ export async function getCreditPacks(): Promise<CreditPack[]> {
 }
 
 export async function getPurchases(): Promise<Purchase[]> {
-  return purchases;
+  try {
+    const data = await apiJson<Purchase[]>("/api/billing/purchases");
+    return data;
+  } catch {
+    return [];
+  }
 }
 
-export async function getPaymentMethod(): Promise<PaymentMethod> {
-  return paymentMethod;
+export async function getPaymentMethod(): Promise<PaymentMethod | null> {
+  try {
+    const data = await apiJson<PaymentMethod>("/api/billing/payment-method");
+    return data;
+  } catch {
+    return null;
+  }
 }
 
 // ---------------------------------------------------------------------------

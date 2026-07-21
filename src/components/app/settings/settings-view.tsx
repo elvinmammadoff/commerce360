@@ -366,7 +366,7 @@ function BillingCard({
   paymentMethod,
   packs,
 }: {
-  paymentMethod: PaymentMethod;
+  paymentMethod: PaymentMethod | null;
   packs: CreditPack[];
 }) {
   return (
@@ -389,9 +389,9 @@ function BillingCard({
             <div>
               <p className="text-sm font-medium">Payment method</p>
               <p className="text-xs text-muted-foreground capitalize">
-                {paymentMethod.brand} ·· {paymentMethod.last4} · expires{" "}
-                {String(paymentMethod.expMonth).padStart(2, "0")}/
-                {paymentMethod.expYear}
+                {paymentMethod
+                  ? `${paymentMethod.brand} ·· ${paymentMethod.last4} · expires ${String(paymentMethod.expMonth).padStart(2, "0")}/${paymentMethod.expYear}`
+                  : "No card on file"}
               </p>
             </div>
           </div>
@@ -477,7 +477,7 @@ export function SettingsView({
   user: CurrentUser;
   workspace: Workspace;
   members: TeamMember[];
-  paymentMethod: PaymentMethod;
+  paymentMethod: PaymentMethod | null;
   packs: CreditPack[];
 }) {
   return (

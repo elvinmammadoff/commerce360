@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function HistoryPage() {
-  const jobs = await getJobs();
+  const jobs = await getJobs().catch(() => []);
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
