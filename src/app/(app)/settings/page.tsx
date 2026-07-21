@@ -4,9 +4,7 @@ import { SettingsView } from "@/components/app/settings/settings-view";
 import { PageHeader } from "@/components/shared/page-header";
 import {
   getCreditPacks,
-  getCurrentUser,
   getPaymentMethod,
-  getTeamMembers,
   getWorkspace,
 } from "@/lib/data";
 
@@ -15,10 +13,8 @@ export const metadata: Metadata = {
 };
 
 export default async function SettingsPage() {
-  const [user, workspace, members, paymentMethod, packs] = await Promise.all([
-    getCurrentUser(),
+  const [workspace, paymentMethod, packs] = await Promise.all([
     getWorkspace(),
-    getTeamMembers(),
     getPaymentMethod(),
     getCreditPacks(),
   ]);
@@ -27,12 +23,10 @@ export default async function SettingsPage() {
     <div className="mx-auto flex max-w-4xl flex-col gap-6">
       <PageHeader
         title="Settings"
-        description="Profile, workspace, billing, team, and notification preferences."
+        description="Profile, workspace, billing, and notification preferences."
       />
       <SettingsView
-        user={user}
         workspace={workspace}
-        members={members}
         paymentMethod={paymentMethod}
         packs={packs}
       />
