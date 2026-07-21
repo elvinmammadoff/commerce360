@@ -62,6 +62,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDate } from "@/lib/format";
+import { useUser } from "@/lib/user-context";
 import type {
   CreditPack,
   CurrentUser,
@@ -70,9 +71,23 @@ import type {
   Workspace,
 } from "@/lib/types";
 
-function ProfileCard({ user }: { user: CurrentUser }) {
+function ProfileCard() {
+  const { user, updateUser } = useUser();
   const [name, setName] = React.useState(user.name);
   const [title, setTitle] = React.useState(user.title);
+
+  const initials = name
+    .split(" ")
+    .filter(Boolean)
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  const save = () => {
+    updateUser({ name: name.trim(), title: title.trim() });
+    toast.success("Profile saved");
+  };
 
   return (
     <Card>
@@ -83,8 +98,9 @@ function ProfileCard({ user }: { user: CurrentUser }) {
       <CardContent className="space-y-4">
         <div className="flex items-center gap-4">
           <Avatar className="size-14">
+            {user.avatarUrl && <img src={user.avatarUrl} alt={name} className="size-full rounded-full object-cover" />}
             <AvatarFallback className="bg-secondary text-lg font-medium">
-              {user.initials}
+              {initials}
             </AvatarFallback>
           </Avatar>
           <div>
@@ -116,7 +132,7 @@ function ProfileCard({ user }: { user: CurrentUser }) {
       <CardFooter className="justify-end border-t border-border">
         <Button
           size="sm"
-          onClick={() => toast.success("Profile saved")}
+          onClick={save}
           disabled={name.trim().length < 2}
         >
           Save changes
@@ -202,7 +218,7 @@ function InviteDialog() {
           <Input
             id="invite-email"
             type="email"
-            placeholder="teammate@fernhaven.com"
+            placeholder="teammate@company.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && invite()}
@@ -329,11 +345,12 @@ const NOTIFICATION_PREFS = [
 ];
 
 function NotificationsCard() {
+  const { user } = useUser();
   return (
     <Card>
       <CardHeader>
         <CardTitle>Notifications</CardTitle>
-        <CardDescription>Delivered to maya@fernhaven.com</CardDescription>
+        <CardDescription>Delivered to {user.email}</CardDescription>
       </CardHeader>
       <CardContent className="divide-y divide-border">
         {NOTIFICATION_PREFS.map((pref) => (
@@ -421,7 +438,7 @@ function BillingCard({
   );
 }
 
-function DangerZoneCard() {
+function DangerZoneCard({ workspace }: { workspace: Workspace }) {
   return (
     <Card className="border-destructive/30">
       <CardHeader>
@@ -442,11 +459,10 @@ function DangerZoneCard() {
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete Fernhaven Home?</AlertDialogTitle>
+              <AlertDialogTitle>Delete {workspace.name}?</AlertDialogTitle>
               <AlertDialogDescription>
-                This permanently deletes 8 products, all generated assets, and
-                every live share page. Embedded viewers on fernhaven.com will
-                stop working. This cannot be undone.
+                This permanently deletes all products, generated assets, and
+                every live share page. This cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -482,12 +498,12 @@ export function SettingsView({
 }) {
   return (
     <div className="space-y-6">
-      <ProfileCard user={user} />
+      <ProfileCard />
       <WorkspaceCard workspace={workspace} />
       <BillingCard paymentMethod={paymentMethod} packs={packs} />
       <TeamCard members={members} />
       <NotificationsCard />
-      <DangerZoneCard />
+      <DangerZoneCard workspace={workspace} />
     </div>
   );
 }

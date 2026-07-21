@@ -7,6 +7,7 @@ import {
   getWorkspace,
 } from "@/lib/data";
 import { SimulationProvider } from "@/lib/simulation/provider";
+import { UserProvider } from "@/lib/user-context";
 
 export default async function AppLayout({
   children,
@@ -23,27 +24,28 @@ export default async function AppLayout({
   ]);
 
   return (
-    <SimulationProvider initialCredits={workspace.creditsBalance} userId={user.id}>
-      <a
-        href="#main"
-        className="sr-only rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50"
-      >
-        Skip to content
-      </a>
-      <div className="flex min-h-svh">
-        <AppSidebar workspace={workspace} />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <AppTopbar
-            user={user}
-            workspace={workspace}
-            notifications={notifications}
-            products={products}
-          />
-          <main id="main" className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
-            {children}
-          </main>
+    <UserProvider initial={user}>
+      <SimulationProvider initialCredits={workspace.creditsBalance} userId={user.id}>
+        <a
+          href="#main"
+          className="sr-only rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50"
+        >
+          Skip to content
+        </a>
+        <div className="flex min-h-svh">
+          <AppSidebar workspace={workspace} />
+          <div className="flex min-w-0 flex-1 flex-col">
+            <AppTopbar
+              workspace={workspace}
+              notifications={notifications}
+              products={products}
+            />
+            <main id="main" className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+              {children}
+            </main>
+          </div>
         </div>
-      </div>
-    </SimulationProvider>
+      </SimulationProvider>
+    </UserProvider>
   );
 }

@@ -137,9 +137,6 @@ export function BillingView({
             >
               Update card
             </Button>
-            <p className="text-xs text-muted-foreground">
-              Billing email: billing@fernhaven.com
-            </p>
           </CardFooter>
         </Card>
       </div>

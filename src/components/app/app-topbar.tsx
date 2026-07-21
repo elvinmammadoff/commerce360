@@ -37,24 +37,23 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { signOut } from "@/lib/auth-actions";
+import { useUser } from "@/lib/user-context";
 import type {
-  CurrentUser,
   NotificationItem,
   Product,
   Workspace,
 } from "@/lib/types";
 
 export function AppTopbar({
-  user,
   workspace,
   notifications,
   products,
 }: {
-  user: CurrentUser;
   workspace: Workspace;
   notifications: NotificationItem[];
   products: Product[];
 }) {
+  const { user } = useUser();
   const router = useRouter();
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
 
