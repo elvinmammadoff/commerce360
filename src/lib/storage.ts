@@ -19,17 +19,17 @@ export async function uploadImage(file: File): Promise<string> {
 
   const optimized = await sharp(raw)
     .resize(2048, 2048, { fit: "inside", withoutEnlargement: true })
-    .webp({ quality: 85 })
+    .jpeg({ quality: 90 })
     .toBuffer();
 
-  const key = `uploads/${randomUUID()}.webp`;
+  const key = `uploads/${randomUUID()}.jpg`;
 
   await s3.send(
     new PutObjectCommand({
       Bucket: BUCKET,
       Key: key,
       Body: optimized,
-      ContentType: "image/webp",
+      ContentType: "image/jpeg",
     }),
   );
 
