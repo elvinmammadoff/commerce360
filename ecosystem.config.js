@@ -39,6 +39,7 @@ module.exports = {
         API_URL: "https://api.orbittify.com",
         API_SERVICE_TOKEN: envLocal.API_SERVICE_TOKEN ?? process.env.API_SERVICE_TOKEN ?? "",
         REPLICATE_API_TOKEN: envLocal.REPLICATE_API_TOKEN ?? process.env.REPLICATE_API_TOKEN ?? "",
+        HF_CREDENTIALS: envLocal.HF_CREDENTIALS ?? process.env.HF_CREDENTIALS ?? "",
       },
     },
   ],
