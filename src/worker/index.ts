@@ -99,18 +99,19 @@ async function processRenderJob(job: Job<RenderJobData>) {
     await patchJob(jobId, { stage: "extracting", progress: 100 });
 
     // Stage 5: Generate 3D model via Hunyuan 3D 3.1 — premium add-on only.
-    // Runs only when job.data.include3d === true (costs 7 extra credits at submission).
-    await patchJob(jobId, { stage: "modeling", progress: 5 });
+    // Skipped entirely (no stage patch) when include3d is false so the UI
+    // never shows the modeling stage for standard renders.
     let geo3d = null;
     if (job.data.include3d && process.env.REPLICATE_API_TOKEN) {
+      await patchJob(jobId, { stage: "modeling", progress: 5 });
       geo3d = await generate3DModel(normalizedUrl, productId, (pct) =>
         patchJob(jobId, { stage: "modeling", progress: 5 + Math.round(pct * 0.9) }),
       ).catch((err) => {
         console.warn(`[worker] 3D modeling skipped: ${(err as Error).message}`);
         return null;
       });
+      await patchJob(jobId, { stage: "modeling", progress: 100 });
     }
-    await patchJob(jobId, { stage: "modeling", progress: 100 });
 
     // Stage 6: Package — persist asset URLs and mark product completed
     await patchJob(jobId, { stage: "packaging", progress: 5 });

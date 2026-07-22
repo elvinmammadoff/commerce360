@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
   const background = (formData.get("background") as string | null) || "Studio white";
   const resolution = (formData.get("resolution") as string | null) || "4K";
   const category = (formData.get("category") as string | null) || "general";
+  const include3d = formData.get("include3d") === "true";
 
   if (!file || !name) {
     return NextResponse.json({ error: "name and file required" }, { status: 400 });
@@ -98,6 +99,7 @@ export async function POST(req: NextRequest) {
     imageUrl,
     category: category as RenderJobData["category"],
     background,
+    include3d,
   });
 
   return NextResponse.json({ productId: product.id, jobId: job.id }, { status: 202 });
