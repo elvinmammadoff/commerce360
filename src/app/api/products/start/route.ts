@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Queue } from "bullmq";
 import Redis from "ioredis";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
-import { randomUUID } from "crypto";
 import type { RenderJobData } from "@/worker/index";
+import { uploadImage } from "@/lib/storage";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "https://api.orbittify.com";
-const APP_URL = (process.env.NEXT_PUBLIC_SHARE_URL ?? "https://orbittify.com").replace(/\/$/, "");
 
 function getQueue() {
   const connection = new Redis(process.env.REDIS_URL ?? "redis://127.0.0.1:6379", {
@@ -53,13 +50,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "name and file required" }, { status: 400 });
   }
 
-  // 1. Save image to public/uploads/ — served at APP_URL/uploads/filename
-  const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
-  const filename = `${randomUUID()}.${ext}`;
-  const uploadsDir = join(process.cwd(), "public", "uploads");
-  await mkdir(uploadsDir, { recursive: true });
-  await writeFile(join(uploadsDir, filename), Buffer.from(await file.arrayBuffer()));
-  const imageUrl = `${APP_URL}/api/uploads/${filename}`;
+  // 1. Optimize and upload image to Cloudflare R2
+  const imageUrl = await uploadImage(file);
 
   // 2. Create draft product in Laravel
   const productRes = await laravelFetch("/api/products", token, {

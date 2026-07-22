@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Queue } from "bullmq";
 import Redis from "ioredis";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
-import { randomUUID } from "crypto";
 import type { RenderJobData } from "@/worker/index";
+import { uploadImage } from "@/lib/storage";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "https://api.orbittify.com";
-const APP_URL = (process.env.NEXT_PUBLIC_SHARE_URL ?? "https://orbittify.com").replace(/\/$/, "");
 
 function getRedis() {
   return new Redis(process.env.REDIS_URL ?? "redis://127.0.0.1:6379", {
@@ -49,13 +46,8 @@ export async function POST(
   let imageUrl: string;
 
   if (file) {
-    // Re-upload provided — save new file and update stored imageUrl
-    const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
-    const filename = `${randomUUID()}.${ext}`;
-    const uploadsDir = join(process.cwd(), "public", "uploads");
-    await mkdir(uploadsDir, { recursive: true });
-    await writeFile(join(uploadsDir, filename), Buffer.from(await file.arrayBuffer()));
-    imageUrl = `${APP_URL}/api/uploads/${filename}`;
+    // Re-upload provided — optimize, upload to R2, and update stored imageUrl
+    imageUrl = await uploadImage(file);
 
     const redis = getRedis();
     await redis.set(`product:${productId}:imageUrl`, imageUrl, "EX", 60 * 60 * 24 * 30);
