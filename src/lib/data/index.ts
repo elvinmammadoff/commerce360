@@ -374,8 +374,8 @@ export async function getActivity(): Promise<ActivityEvent[]> {
 
 export async function getNotifications(): Promise<NotificationItem[]> {
   try {
-    const data = await apiJson<NotificationItem[]>("/api/notifications");
-    return data;
+    const data = await apiJson<(Omit<NotificationItem, "createdAt"> & { created_at: string })[]>("/api/notifications");
+    return data.map((n) => ({ ...n, createdAt: toUtcIso(n.created_at) }));
   } catch {
     return [];
   }

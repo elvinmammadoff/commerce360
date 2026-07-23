@@ -72,6 +72,15 @@ export function NotificationsPopover({
         </div>
         <Separator />
         <ul className="max-h-96 overflow-y-auto py-1">
+          {items.length === 0 && (
+            <li className="flex flex-col items-center gap-2 px-4 py-8 text-center">
+              <Bell className="size-8 text-muted-foreground/40" aria-hidden="true" />
+              <p className="text-sm font-medium text-foreground">No notifications yet</p>
+              <p className="text-xs text-muted-foreground">
+                You&apos;ll see updates about your renders here.
+              </p>
+            </li>
+          )}
           {items.map((item) => {
             const Icon = TONE_ICON[item.tone];
             const body = (
