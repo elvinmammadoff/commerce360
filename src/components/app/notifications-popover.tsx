@@ -12,6 +12,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { apiJson } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import type { NotificationItem } from "@/lib/types";
 
@@ -34,6 +35,16 @@ export function NotificationsPopover({
 }) {
   const [items, setItems] = React.useState(initial);
   const unread = items.filter((item) => !item.read).length;
+
+  const markAllRead = async () => {
+    setItems((prev) => prev.map((item) => ({ ...item, read: true })));
+    await apiJson("/api/notifications/read-all", { method: "POST" }).catch(() => {});
+  };
+
+  const markOneRead = async (id: string) => {
+    setItems((prev) => prev.map((item) => item.id === id ? { ...item, read: true } : item));
+    await apiJson(`/api/notifications/${id}/read`, { method: "PATCH" }).catch(() => {});
+  };
 
   return (
     <Popover>
@@ -62,9 +73,7 @@ export function NotificationsPopover({
             <Button
               variant="ghost"
               size="xs"
-              onClick={() =>
-                setItems((prev) => prev.map((item) => ({ ...item, read: true })))
-              }
+              onClick={() => void markAllRead()}
             >
               Mark all as read
             </Button>
@@ -121,6 +130,7 @@ export function NotificationsPopover({
                   <Link
                     href={item.href}
                     className="flex gap-3 px-4 py-2.5 transition-colors hover:bg-accent"
+                    onClick={() => !item.read && void markOneRead(item.id)}
                   >
                     {body}
                   </Link>

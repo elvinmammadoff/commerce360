@@ -184,8 +184,8 @@ function NotificationsCard({ prefs }: { prefs: NotificationPreferences }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Notifications</CardTitle>
-        <CardDescription>Delivered to {user.email}</CardDescription>
+        <CardTitle>Email notifications</CardTitle>
+        <CardDescription>Emails delivered to {user.email}</CardDescription>
       </CardHeader>
       <CardContent className="divide-y divide-border">
         {PREF_ROWS.map((row) => (
