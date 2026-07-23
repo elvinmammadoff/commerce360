@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useLiveFixtureJobs } from "@/hooks/use-live-fixture-jobs";
 import { formatDuration } from "@/lib/format";
-import { getStage } from "@/lib/pipeline";
+import { getStage, PIPELINE_STAGES } from "@/lib/pipeline";
 import { useSimulation } from "@/lib/simulation/provider";
 import type { JobStatus } from "@/lib/types";
 
@@ -46,20 +46,21 @@ const STATUS_OPTIONS: { value: JobStatus | "all"; label: string }[] = [
 import type { GenerationJob } from "@/lib/types";
 
 function StageCell({ job }: { job: GenerationJob }) {
-  const stage = getStage(job.stage);
   if (job.status === "completed") {
     return <span className="text-sm text-muted-foreground">All stages passed</span>;
   }
   if (job.status === "failed") {
+    const stage = PIPELINE_STAGES.find((s) => s.id === job.stage);
     return (
       <Tooltip>
         <TooltipTrigger className="cursor-help text-left text-sm text-destructive underline decoration-destructive/40 decoration-dotted underline-offset-4">
-          Failed at {stage.label.toLowerCase()}
+          Failed{stage ? ` at ${stage.label.toLowerCase()}` : ""}
         </TooltipTrigger>
         <TooltipContent className="max-w-64">{job.error}</TooltipContent>
       </Tooltip>
     );
   }
+  const stage = getStage(job.stage);
   return (
     <span className="text-sm text-foreground">
       {stage.label}
