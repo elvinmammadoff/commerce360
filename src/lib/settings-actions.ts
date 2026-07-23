@@ -89,3 +89,21 @@ export async function updateWorkspaceName(
 
   return null;
 }
+
+export async function markNotificationRead(id: string): Promise<void> {
+  const token = await getToken();
+  if (!token) return;
+  await fetch(`${API_BASE}/api/notifications/${id}/read`, {
+    method: "PATCH",
+    headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+  }).catch(() => {});
+}
+
+export async function markAllNotificationsRead(): Promise<void> {
+  const token = await getToken();
+  if (!token) return;
+  await fetch(`${API_BASE}/api/notifications/read-all`, {
+    method: "POST",
+    headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+  }).catch(() => {});
+}

@@ -12,7 +12,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
-import { apiJson } from "@/lib/api-client";
+import { markAllNotificationsRead, markNotificationRead } from "@/lib/settings-actions";
 import { cn } from "@/lib/utils";
 import type { NotificationItem } from "@/lib/types";
 
@@ -38,12 +38,12 @@ export function NotificationsPopover({
 
   const markAllRead = async () => {
     setItems((prev) => prev.map((item) => ({ ...item, read: true })));
-    await apiJson("/api/notifications/read-all", { method: "POST" }).catch(() => {});
+    void markAllNotificationsRead();
   };
 
   const markOneRead = async (id: string) => {
     setItems((prev) => prev.map((item) => item.id === id ? { ...item, read: true } : item));
-    await apiJson(`/api/notifications/${id}/read`, { method: "PATCH" }).catch(() => {});
+    void markNotificationRead(id);
   };
 
   return (
