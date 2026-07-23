@@ -17,8 +17,10 @@ please fill those in.
   instead run a separate Laravel application as the source of truth.
 - **Decision:** Business state and APIs (auth, workspaces, products, jobs,
   credits, notifications) live in Laravel. Next.js calls it server-side.
-- **Reason:** `TODO: Confirm with project owner.` (Observed benefits in use: a
-  mature queue/worker system, Sanctum auth, and Eloquent for business data.)
+- **Reason:** Confirmed by project owner. The system needs mature queues,
+  notifications, mail, scheduled jobs, API authentication, and background
+  processing — areas where Laravel provides a proven ecosystem. Business logic
+  lives in Laravel; Next.js focuses on the UI layer.
 - **Consequences:**
   - Pros: proven queue + auth ecosystem; business logic isolated from the UI.
   - Cons: two runtimes to deploy and monitor; some data shapes are mapped twice
@@ -32,8 +34,11 @@ please fill those in.
 - **Decision:** A standalone Node worker runs the pipeline and reports status
   back to Laravel over HTTP (`PATCH /api/jobs/{id}`). It shares no process with
   the web app.
-- **Reason:** `TODO: Confirm with project owner.` (Observed: the media tooling is
-  Node-based; isolating it keeps heavy work off the web request path.)
+- **Reason:** Confirmed by project owner. Rendering is a set of long-running AI
+  tasks (orbit generation, 3D generation, packaging, marketplace assets) that
+  must not run inside an HTTP request lifecycle, where they would risk timeouts
+  and a poor experience. A dedicated asynchronous worker driven by the queue
+  keeps this heavy work off the web path.
 - **Consequences:**
   - Pros: render load never blocks web requests; the pipeline can be scaled or
     restarted independently.
@@ -46,9 +51,12 @@ please fill those in.
   marketplace export set. These are separate stages (`marketplace`, `package`).
 - **Decision:** Keep marketplace/packaging as their own stages rather than
   folding them into rendering.
-- **Reason:** `TODO: Confirm with project owner.` (A plausible motivation is that
-  new export formats can be added without touching the render stages — please
-  confirm this was the intent.)
+- **Reason:** Confirmed by project owner. Marketplace generation is a separate
+  responsibility from rendering: rendering produces the product assets, while the
+  marketplace stage adapts those assets to platform-specific requirements. Keeping
+  them separate lets new marketplaces and compliance rules be added without
+  modifying the rendering pipeline. (Specific target platforms are examples to be
+  confirmed against the current exporters.)
 - **Consequences:**
   - Pros: exporters can evolve independently of rendering.
   - Cons: more stages to coordinate and track progress across.
