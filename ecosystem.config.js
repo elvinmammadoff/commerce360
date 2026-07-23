@@ -28,6 +28,17 @@ module.exports = {
       },
     },
     {
+      name: "laravel-queue",
+      script: "php",
+      args: "/var/www/backend/artisan queue:work --sleep=3 --tries=3 --max-time=3600",
+      instances: 1,
+      exec_mode: "fork",
+      autorestart: true,
+      env: {
+        APP_ENV: "production",
+      },
+    },
+    {
       name: "c360-worker",
       script: "dist/worker/index.js",
       instances: 1,
