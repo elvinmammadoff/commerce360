@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Code2, Film, Images, Rotate3d, Share2, Store } from "lucide-react";
+import { Box, Code2, Film, Images, Rotate3d, Share2, Store } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { GradientBorder } from "@/components/marketing/gradient-border";
@@ -22,6 +22,7 @@ const FEATURE_TINTS = [
   "bg-[#786ffa]/12 text-[#a08cfb] ring-[#786ffa]/25",
   "bg-[#8166f8]/12 text-[#ab84fa] ring-[#8166f8]/25",
   "bg-[#8B5CF6]/12 text-[#a78bfa] ring-[#8B5CF6]/25",
+  "bg-[#9553f4]/12 text-[#b47cf6] ring-[#9553f4]/25",
 ] as const;
 
 /** Shared bento cell — hairline surface, cursor spotlight, quiet hover lift. */
@@ -130,10 +131,10 @@ export function Features() {
           >
             <div className="relative flex-1 p-2">
               <TurntableViewer
-                src="/demo/bed.mp4"
+                src="https://orbittify.com/api/uploads/videos/d436b6f9-c68e-4ddb-af6e-431a398ab754.mp4"
                 autoRotate
                 compact
-                productName="Solvei Upholstered Bed"
+                productName="Cross Stul 1"
                 className="size-full min-h-56 rounded-xl"
               />
             </div>
@@ -275,6 +276,45 @@ export function Features() {
             <CellText icon={Code2} title="API & webhooks" tint={FEATURE_TINTS[4]}>
               Render on publish: connect your PIM and new SKUs come out with full
               asset sets.
+            </CellText>
+          </Cell>
+
+          {/* 3D model add-on — perspective mesh motif */}
+          <Cell index={6} className="lg:col-span-6 lg:row-start-4">
+            <div
+              className="relative min-h-28 flex-1 overflow-hidden px-6 pt-6"
+              style={{ perspective: "320px" }}
+            >
+              <div
+                className="grid h-full min-h-24 grid-cols-8 grid-rows-2 gap-1.5 mask-fade-x"
+                style={{ transform: "rotateX(22deg) rotateY(-10deg) scale(0.96)" }}
+              >
+                {Array.from({ length: 16 }).map((_, i) => (
+                  <motion.div
+                    key={i}
+                    {...(reduceMotion
+                      ? {}
+                      : {
+                          initial: { opacity: 0, scale: 0.6 },
+                          whileInView: { opacity: 1, scale: 1 },
+                          viewport: { once: true, margin: "-40px" },
+                          transition: { duration: 0.3, delay: i * 0.022, ease: EASE },
+                        })}
+                    className={cn(
+                      "rounded-[5px] ring-1 ring-inset ring-white/5",
+                      [1, 6, 9].includes(i)
+                        ? "bg-[#9553f4]/25 ring-[#9553f4]/40"
+                        : [3, 12].includes(i)
+                          ? "bg-brand/20 ring-brand/35"
+                          : "bg-white/[0.05]",
+                    )}
+                  />
+                ))}
+              </div>
+            </div>
+            <CellText icon={Box} title="3D model add-on" tint={FEATURE_TINTS[6]}>
+              A textured GLB generated from the same studio render — load it in AR Quick Look, Blender,
+              Three.js, or any game engine. Activate per product.
             </CellText>
           </Cell>
 

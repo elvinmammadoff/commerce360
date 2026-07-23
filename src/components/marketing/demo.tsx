@@ -7,6 +7,7 @@ import { Reveal } from "@/components/marketing/reveal";
 import { SectionGlow } from "@/components/marketing/section-glow";
 import { SectionHeader } from "@/components/marketing/section-header";
 import { TurntableViewer } from "@/components/app/viewer/turntable-viewer";
+import { Model3DViewer } from "@/components/app/viewer/model-viewer-3d";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +22,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { CapturedFrame } from "@/lib/media/video-frames";
 import { getVideoPoster } from "@/lib/media/video-frames";
 
-const DEMO_VIDEO = "/demo/bed.mp4";
+const DEMO_VIDEO = "https://orbittify.com/api/uploads/videos/f734e8e8-e892-42fb-934c-223bee54fbf0.mp4";
+const DEMO_MODEL = "https://orbittify.com/api/uploads/models/f734e8e8-e892-42fb-934c-223bee54fbf0/model.glb";
 
 /** The "before" — a single flat catalog photo, captured from the orbit. */
 function SourcePhoto() {
@@ -44,7 +46,7 @@ function SourcePhoto() {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={poster}
-            alt="Single source photo of the Solvei upholstered bed"
+            alt="Single source photo of the Ps 74 315 lounge chair"
             className="aspect-square w-full rounded-lg bg-[#f4f2ee] object-cover"
           />
         ) : (
@@ -52,7 +54,7 @@ function SourcePhoto() {
         )}
         <figcaption className="flex items-center gap-1.5 px-1.5 py-2 font-mono text-[11px] text-muted-foreground">
           <ImageIcon className="size-3" aria-hidden="true" />
-          solvei-dove-front.jpg · the only input
+          ps_74_315.jpg · the only input
         </figcaption>
       </div>
     </figure>
@@ -143,8 +145,7 @@ function FramesStrip() {
               Frame {(selected?.index ?? 0) + 1} of {FRAME_COUNT}
             </DialogTitle>
             <DialogDescription>
-              Solvei Upholstered Bed · {selected?.angle}° · use ← → to
-              navigate
+              Ps 74 315 · {selected?.angle}° · use ← → to navigate
             </DialogDescription>
           </DialogHeader>
           {selected && (
@@ -152,7 +153,7 @@ function FramesStrip() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={selected.url}
-                alt={`Solvei Upholstered Bed at ${selected.angle} degrees`}
+                alt={`Ps 74 315 at ${selected.angle} degrees`}
                 className="w-full rounded-lg border border-border"
               />
               <div className="absolute inset-y-0 left-0 flex items-center pl-2">
@@ -193,7 +194,7 @@ export function Demo() {
         <SectionHeader
           eyebrow="Live demo"
           title="One photo in. This comes out."
-          description="An upholstered bed from a Fernhaven Home catalog shot — rendered in 10 minutes 55 seconds. Everything below is interactive."
+          description="A lounge chair from a product photo — one image in, one credit spent. 360° orbit, 72 frames, and a 3D model. Everything below is interactive."
         />
 
         <div className="mt-14 grid items-center gap-8 lg:grid-cols-[minmax(0,2fr)_auto_minmax(0,3fr)]">
@@ -204,7 +205,7 @@ export function Demo() {
           <Reveal delay={0.1} className="flex justify-center">
             <div className="flex items-center gap-2 text-muted-foreground lg:flex-col">
               <span className="font-mono text-[11px] tracking-wider uppercase">
-                11 min
+                ~14 min
               </span>
               <ArrowRight
                 className="size-5 text-brand max-lg:rotate-90 lg:rotate-0"
@@ -223,6 +224,7 @@ export function Demo() {
                   <TabsTrigger value="viewer">360° viewer</TabsTrigger>
                   <TabsTrigger value="video">Orbit video</TabsTrigger>
                   <TabsTrigger value="frames">Frames</TabsTrigger>
+                  <TabsTrigger value="model">3D model</TabsTrigger>
                 </TabsList>
                 <Badge
                   variant="outline"
@@ -234,7 +236,7 @@ export function Demo() {
               <TabsContent value="viewer" className="mt-3">
                 <TurntableViewer
                   src={DEMO_VIDEO}
-                  productName="Solvei Upholstered Bed"
+                  productName="Ps 74 315"
                   compact
                   className="aspect-[16/10] w-full"
                 />
@@ -252,6 +254,9 @@ export function Demo() {
               </TabsContent>
               <TabsContent value="frames" className="mt-3">
                 <FramesStrip />
+              </TabsContent>
+              <TabsContent value="model" className="mt-3">
+                <Model3DViewer src={DEMO_MODEL} />
               </TabsContent>
             </Tabs>
           </Reveal>
