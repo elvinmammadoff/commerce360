@@ -19,7 +19,7 @@ set -euo pipefail
 
 APP_DIR="/var/www/commerce360"
 PM2_APP="c360-next"
-HEALTH_URL="http://localhost:3000/"
+HEALTH_URL="http://localhost:3000/api/health"
 LOG_FILE="$APP_DIR/deploy.log"
 
 cd "$APP_DIR"
@@ -29,9 +29,11 @@ log() { echo "$(date -u '+%Y-%m-%dT%H:%M:%SZ') | $*" | tee -a "$LOG_FILE"; }
 # build_and_restart: build the current checkout, restart PM2, health-check.
 # Returns 0 only when the app answers HTTP 200, non-zero otherwise.
 build_and_restart() {
+  local start=$SECONDS
   if ! npm run build; then
     return 1
   fi
+  BUILD_SECONDS=$((SECONDS - start))
   pm2 restart "$PM2_APP" --update-env
   for i in $(seq 1 10); do
     if [ "$(curl -s -o /dev/null -w '%{http_code}' "$HEALTH_URL" || true)" = "200" ]; then
@@ -57,7 +59,7 @@ fi
 
 echo "==> building + restarting $NEW_COMMIT"
 if build_and_restart; then
-  log "SUCCESS commit=$NEW_COMMIT"
+  log "SUCCESS commit=$NEW_COMMIT build=${BUILD_SECONDS}s"
   echo "==> healthy (HTTP 200), deploy complete"
   exit 0
 fi
