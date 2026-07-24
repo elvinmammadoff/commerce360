@@ -16,12 +16,17 @@ export async function generateMetadata({
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return { title: "360° viewer" };
+  const cover = product.assets?.frameUrls?.[0];
   return {
     title: `${product.name} — 360° view`,
     description: `Spin ${product.name} in 360°. Interactive product viewer by Orbittify.`,
+    // Share pages are unlisted-by-link, not landing pages — keep them out of
+    // search indexes.
+    robots: { index: false, follow: false },
     openGraph: {
       title: `${product.name} — 360° view`,
       type: "website",
+      ...(cover ? { images: [{ url: cover }] } : {}),
     },
   };
 }

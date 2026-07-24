@@ -8,6 +8,15 @@ const nextConfig: NextConfig = {
     root: path.join(__dirname),
   },
   devIndicators: false,
+  // Public share/embed viewers are unlisted-by-link — never index them.
+  async headers() {
+    return [
+      {
+        source: "/:group(view|embed)/:slug*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
