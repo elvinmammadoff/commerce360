@@ -12,17 +12,77 @@ import type {
   ProductAssets,
 } from "@/lib/types";
 
-function readiness(score: number): { label: string; dot: string; text: string } {
-  if (score >= 90) return { label: "Ready", dot: "bg-success", text: "text-success" };
+// Tasteful brand-coloured marks — not literal trademarked logos.
+const BRAND: Record<string, { color: string; mark: string }> = {
+  amazon: { color: "#FF9900", mark: "a" },
+  shopify: { color: "#95BF47", mark: "S" },
+  etsy: { color: "#F1641E", mark: "E" },
+  wayfair: { color: "#7F187F", mark: "W" },
+  trendyol: { color: "#F27A1A", mark: "t" },
+  hepsiburada: { color: "#FF6000", mark: "h" },
+};
+
+function readiness(score: number): { label: string; dot: string; text: string; bar: string } {
+  if (score >= 90)
+    return { label: "Ready to publish", dot: "bg-success", text: "text-success", bar: "bg-success" };
   if (score >= 70)
-    return { label: "Needs improvement", dot: "bg-amber-500", text: "text-amber-500" };
-  return { label: "Review recommended", dot: "bg-destructive", text: "text-destructive" };
+    return { label: "Needs improvement", dot: "bg-amber-500", text: "text-amber-500", bar: "bg-amber-500" };
+  return { label: "Review required", dot: "bg-destructive", text: "text-destructive", bar: "bg-destructive" };
 }
 
-/** Compliance checks are rule-based pixel measurements — never call them "AI". */
+/** The highest-weight failing check for one platform, or null if all pass. */
+function topIssue(checks: MarketplaceCheck[]): MarketplaceCheck | null {
+  return checks
+    .filter((c) => !c.pass)
+    .sort((a, b) => b.weight - a.weight)[0] ?? null;
+}
+
+function PlatformMark({ id }: { id: string }) {
+  const b = BRAND[id] ?? { color: "#6b7280", mark: id[0]?.toUpperCase() ?? "?" };
+  return (
+    <span
+      aria-hidden="true"
+      className="flex size-7 shrink-0 items-center justify-center rounded-md text-sm font-bold text-white"
+      style={{ backgroundColor: b.color }}
+    >
+      {b.mark}
+    </span>
+  );
+}
+
+function ScoreRing({ score }: { score: number }) {
+  const r = readiness(score);
+  const radius = 52;
+  const circ = 2 * Math.PI * radius;
+  const ringColor = score >= 90 ? "#22c55e" : score >= 70 ? "#f59e0b" : "#ef4444";
+  return (
+    <div className="relative size-32 shrink-0">
+      <svg viewBox="0 0 120 120" className="size-full -rotate-90">
+        <circle cx="60" cy="60" r={radius} fill="none" strokeWidth="10" className="stroke-border" />
+        <circle
+          cx="60"
+          cy="60"
+          r={radius}
+          fill="none"
+          strokeWidth="10"
+          stroke={ringColor}
+          strokeLinecap="round"
+          strokeDasharray={circ}
+          strokeDashoffset={circ * (1 - score / 100)}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="font-mono text-3xl font-semibold text-foreground">{score}</span>
+        <span className="text-xs text-muted-foreground">/100</span>
+      </div>
+      <span className="sr-only">{r.label}</span>
+    </div>
+  );
+}
+
 function CheckRow({ check }: { check: MarketplaceCheck }) {
   return (
-    <div className="flex items-start gap-2.5 py-2">
+    <div className="flex items-start gap-2.5 py-2.5">
       {check.pass ? (
         <Check className="mt-0.5 size-4 shrink-0 text-success" aria-hidden="true" />
       ) : (
@@ -31,18 +91,24 @@ function CheckRow({ check }: { check: MarketplaceCheck }) {
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
           <span className="text-sm text-foreground">{check.name}</span>
-          {check.value && (
-            <span className="shrink-0 font-mono text-xs text-muted-foreground">
-              {check.value}
+          <div className="flex shrink-0 items-center gap-3">
+            {check.value && (
+              <span className="font-mono text-xs text-muted-foreground">{check.value}</span>
+            )}
+            <span
+              className={cn(
+                "text-xs font-medium",
+                check.pass ? "text-success" : "text-amber-500",
+              )}
+            >
+              {check.pass ? "Pass" : "Fail"}
             </span>
-          )}
+          </div>
         </div>
         {!check.pass && check.recommendation && (
           <p className="mt-0.5 text-xs text-muted-foreground">
             {check.recommendation}
-            <span className="ml-1 font-medium text-foreground">
-              (potential +{check.weight} pts)
-            </span>
+            <span className="ml-1 font-medium text-foreground">(potential +{check.weight} pts)</span>
           </p>
         )}
       </div>
@@ -59,8 +125,7 @@ function LegacyFallback({ product }: { product: Product }) {
       </p>
       <p className="mx-auto mt-1 max-w-md text-xs text-muted-foreground">
         This marketplace package was generated before per-check reporting was
-        introduced. Re-render {product.name} to see the full compliance breakdown
-        and recommendations.
+        introduced. Re-render {product.name} to see the full compliance breakdown.
       </p>
     </div>
   );
@@ -85,10 +150,22 @@ export function MarketplaceReport({
     [report],
   );
 
-  // Default to the lowest-scoring platform — the most actionable one.
-  const [selected, setSelected] = React.useState<string>(
-    platformEntries[0]?.[0] ?? "",
-  );
+  const [selected, setSelected] = React.useState<string>(platformEntries[0]?.[0] ?? "");
+
+  // Aggregate failing checks across platforms → the biggest opportunities.
+  const opportunities = React.useMemo(() => {
+    if (!report) return [];
+    const map = new Map<string, { name: string; weight: number; count: number; rec?: string }>();
+    for (const p of Object.values(report.platforms)) {
+      for (const c of p.checks) {
+        if (c.pass) continue;
+        const cur = map.get(c.id) ?? { name: c.name, weight: c.weight, count: 0, rec: c.recommendation };
+        cur.count += 1;
+        map.set(c.id, cur);
+      }
+    }
+    return [...map.values()].sort((a, b) => b.weight - a.weight).slice(0, 3);
+  }, [report]);
 
   if (!report || platformEntries.length === 0) {
     return <LegacyFallback product={product} />;
@@ -96,108 +173,130 @@ export function MarketplaceReport({
 
   const overall = readiness(report.overallScore);
   const current = report.platforms[selected] ?? platformEntries[0][1];
+  const currentId = report.platforms[selected] ? selected : platformEntries[0][0];
   const downloadHref = `/api/products/${product.id}/download?type=marketplace`;
-  const rule = report.highestImpactRule;
+  const affected = report.highestImpactRule
+    ? Object.values(report.platforms).filter((p) =>
+        p.checks.some((c) => c.id === report.highestImpactRule!.id && !c.pass),
+      ).length
+    : 0;
 
   return (
-    <div className="space-y-5">
-      {/* Overall readiness */}
-      <div className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card p-5">
-        <div>
-          <p className="text-sm font-medium text-foreground">Marketplace compliance</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Rule-based checks across {platformEntries.length} platforms
-          </p>
+    <div className="space-y-4">
+      {/* Hero: readiness ring + summary */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="flex items-center gap-5 rounded-2xl border border-border bg-card p-5">
+          <ScoreRing score={report.overallScore} />
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-foreground">Marketplace readiness</p>
+            <span className={cn("mt-0.5 flex items-center gap-1.5 text-sm font-semibold", overall.text)}>
+              <span className={cn("size-2 rounded-full", overall.dot)} />
+              {overall.label}
+            </span>
+            <p className="mt-2 text-xs text-muted-foreground">
+              {report.highestImpactRule
+                ? `Your product meets most requirements, but ${report.highestImpactRule.name.toLowerCase()} is below target on ${affected} of ${platformEntries.length} marketplaces.`
+                : "Every compliance check passes across all marketplaces."}
+            </p>
+          </div>
         </div>
-        <div className="text-right">
-          <p className="font-mono text-2xl font-semibold text-foreground">
-            {report.overallScore}
-            <span className="text-base font-normal text-muted-foreground">/100</span>
-          </p>
-          <span className={cn("flex items-center justify-end gap-1.5 text-xs font-medium", overall.text)}>
-            <span className={cn("size-1.5 rounded-full", overall.dot)} />
-            {overall.label}
-          </span>
-        </div>
-      </div>
 
-      {/* Key insight — derived by the backend, not computed here */}
-      <div className="flex items-start gap-3 rounded-xl border border-brand/30 bg-brand/5 p-4">
-        <Lightbulb className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden="true" />
-        <p className="text-sm text-foreground">
-          {rule ? (
-            <>
-              Your biggest opportunity is <span className="font-medium">{rule.name}</span>.
-              It carries the most weight ({rule.weight} pts) among the checks that
-              fail and holds scores down across platforms — fixing it once lifts
-              every marketplace at the same time.
-            </>
+        {/* Biggest opportunities */}
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="mb-3 text-sm font-medium text-foreground">Biggest opportunities</p>
+          {opportunities.length === 0 ? (
+            <div className="flex items-center gap-2 text-sm text-success">
+              <Check className="size-4" aria-hidden="true" /> All checks pass — ready to publish
+            </div>
           ) : (
-            <>Every compliance check passes across all platforms — your assets are marketplace-ready.</>
+            <ul className="space-y-2.5">
+              {opportunities.map((o) => (
+                <li key={o.name} className="flex items-start gap-2.5">
+                  <TriangleAlert className="mt-0.5 size-4 shrink-0 text-amber-500" aria-hidden="true" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm text-foreground">{o.name}</span>
+                      <span className="shrink-0 rounded bg-amber-500/15 px-1.5 py-0.5 text-xs font-medium text-amber-500">
+                        +{o.weight} pts
+                      </span>
+                    </div>
+                    {o.rec && <p className="mt-0.5 text-xs text-muted-foreground">{o.rec}</p>}
+                  </div>
+                </li>
+              ))}
+            </ul>
           )}
-        </p>
+        </div>
       </div>
 
-      {/* Platform overview */}
+      {/* Platform overview cards */}
       <div>
         <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-          Platforms
+          Marketplace overview
         </p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {platformEntries.map(([id, p]) => {
             const r = readiness(p.score);
-            const active = id === selected;
+            const issue = topIssue(p.checks);
+            const active = id === currentId;
             return (
               <button
                 key={id}
                 type="button"
                 onClick={() => setSelected(id)}
                 className={cn(
-                  "flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left transition-colors",
-                  active
-                    ? "border-brand/50 bg-brand/5"
-                    : "border-border bg-card hover:bg-accent",
+                  "rounded-xl border p-3 text-left transition-colors",
+                  active ? "border-brand/50 bg-brand/5" : "border-border bg-card hover:bg-accent",
                 )}
               >
-                <span className="min-w-0">
-                  <span className="block truncate text-sm text-foreground">{p.label}</span>
-                  <span className={cn("flex items-center gap-1 text-[11px]", r.text)}>
-                    <span className={cn("size-1.5 rounded-full", r.dot)} />
-                    {r.label}
+                <div className="flex items-center gap-2">
+                  <PlatformMark id={id} />
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
+                    {p.label}
                   </span>
-                </span>
-                <span className="shrink-0 font-mono text-sm font-medium text-foreground">
-                  {p.score}
-                </span>
+                  <span className="font-mono text-sm font-semibold text-foreground">{p.score}</span>
+                </div>
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-border">
+                  <div className={cn("h-full rounded-full", r.bar)} style={{ width: `${p.score}%` }} />
+                </div>
+                <p className={cn("mt-1.5 text-[11px] font-medium", r.text)}>{r.label}</p>
+                <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                  {issue ? `Top issue: ${issue.name}` : "No action required"}
+                </p>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Compliance checks for the selected platform */}
+      {/* Selected platform checks */}
       <div className="rounded-2xl border border-border bg-card p-5">
-        <p className="mb-1 text-sm font-medium text-foreground">
-          {current.label} checks
-        </p>
+        <div className="mb-1 flex items-center gap-2">
+          <PlatformMark id={currentId} />
+          <p className="text-sm font-medium text-foreground">{current.label} compatibility checks</p>
+        </div>
         <div className="divide-y divide-border">
           {current.checks.map((c) => (
             <CheckRow key={c.id} check={c} />
           ))}
         </div>
+        <p className="mt-3 border-t border-border pt-3 text-[11px] text-muted-foreground">
+          Based on Orbittify&apos;s marketplace compatibility analysis and common
+          marketplace best practices — not official {current.label} policy.
+        </p>
       </div>
 
-      {/* Download — secondary action */}
+      {/* Download — secondary */}
       <div className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4">
         <div>
-          <p className="text-sm font-medium text-foreground">Marketplace package</p>
+          <p className="text-sm font-medium text-foreground">Download marketplace package</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Per-platform images + compliance.json · ZIP
+            All {platformEntries.length} platform images + compliance report · ZIP
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
           <a href={downloadHref} download={`${product.shareSlug ?? product.id}-marketplace-set.zip`}>
-            <Download aria-hidden="true" /> Download
+            <Download aria-hidden="true" /> Download ZIP
           </a>
         </Button>
       </div>
