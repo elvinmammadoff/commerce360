@@ -12,6 +12,10 @@ import type {
   ProductAssets,
 } from "@/lib/types";
 
+// Bump when any file in public/marketplaces/ changes — busts the browser cache
+// so stable filenames still refetch after a logo swap.
+const LOGO_VERSION = "2";
+
 // Tasteful brand-coloured marks — not literal trademarked logos.
 const BRAND: Record<string, { color: string; mark: string }> = {
   amazon: { color: "#FF9900", mark: "a" },
@@ -57,7 +61,7 @@ function PlatformLogo({ id }: { id: string }) {
     <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-white p-1">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={`/marketplaces/${id}.svg`}
+        src={`/marketplaces/${id}.svg?v=${LOGO_VERSION}`}
         alt=""
         className="size-full object-contain"
         onError={() => setBroken(true)}
