@@ -113,6 +113,31 @@ export interface ProductAssets {
   marketplaceReady?: boolean;
   marketplaceScore?: number;
   marketplaceScores?: Record<string, number>;
+  /** Full per-check report — only present for renders after reporting shipped. */
+  marketplaceReport?: MarketplaceReport;
+}
+
+export interface MarketplaceCheck {
+  id: string;
+  name: string;
+  pass: boolean;
+  value?: string;
+  weight: number;
+  recommendation?: string;
+}
+
+export interface MarketplacePlatformReport {
+  label: string;
+  score: number;
+  checks: MarketplaceCheck[];
+}
+
+export interface MarketplaceReport {
+  generatedAt: string;
+  overallScore: number;
+  /** The single failing rule with the biggest score impact, or null if all pass. */
+  highestImpactRule: { id: string; name: string; weight: number } | null;
+  platforms: Record<string, MarketplacePlatformReport>;
 }
 
 /**

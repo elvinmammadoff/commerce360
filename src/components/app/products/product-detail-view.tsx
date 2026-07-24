@@ -16,6 +16,7 @@ import {
 import { useRouter } from "next/navigation";
 
 import { DownloadsPanel } from "@/components/app/products/downloads-panel";
+import { MarketplaceReport } from "@/components/app/products/marketplace-report";
 import { FramesGallery } from "@/components/app/products/frames-gallery";
 import { PipelineProgress } from "@/components/app/products/pipeline-progress";
 import { ShareDialog } from "@/components/app/products/share-dialog";
@@ -378,6 +379,7 @@ export function ProductDetailView({
                 {product.assets.modelUrl && (
                   <TabsTrigger value="geo3d">3D geo</TabsTrigger>
                 )}
+                <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
                 <TabsTrigger value="downloads">Downloads</TabsTrigger>
                 <TabsTrigger value="hotspots" className="gap-1.5">
                   <MapPin aria-hidden="true" className="size-3.5" />
@@ -426,6 +428,9 @@ export function ProductDetailView({
                   </p>
                 </TabsContent>
               )}
+              <TabsContent value="marketplace" className="mt-4">
+                <MarketplaceReport product={product} assets={product.assets} />
+              </TabsContent>
               <TabsContent value="downloads" className="mt-4">
                 <DownloadsPanel product={product} assets={product.assets} />
               </TabsContent>

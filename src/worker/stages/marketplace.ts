@@ -328,18 +328,63 @@ export async function generateMarketplaceSet(
 }
 
 /**
+ * The single check that would most improve compliance if fixed — the highest
+ * total-weight rule that fails, summed across every platform it fails on.
+ * Only the real, measured checks (fill/centered/sharpness/clipping) can fail;
+ * background/resolution/format are guaranteed by the pipeline, so they never
+ * surface here. Returned so the UI displays the insight without computing it.
+ */
+function highestImpactRule(
+  complianceByPlatform: Record<string, ComplianceResult>,
+): { id: string; name: string; weight: number } | null {
+  const impact = new Map<string, { name: string; weight: number; total: number }>();
+  for (const result of Object.values(complianceByPlatform)) {
+    for (const c of result.checks) {
+      if (c.pass) continue;
+      const cur = impact.get(c.id) ?? { name: c.name, weight: c.weight, total: 0 };
+      cur.total += c.weight;
+      impact.set(c.id, cur);
+    }
+  }
+  let best: { id: string; name: string; weight: number } | null = null;
+  let bestTotal = 0;
+  for (const [id, v] of impact) {
+    if (v.total > bestTotal) {
+      bestTotal = v.total;
+      best = { id, name: v.name, weight: v.weight };
+    }
+  }
+  return best;
+}
+
+/**
  * Patch the product's assets with marketplace compliance data.
  * Fetches existing assets first and merges — PATCH replaces the entire JSON
  * column, so we must preserve frameCount, frameUrls, modelUrl, etc.
+ *
+ * Stores the FULL per-check report (not just scores) under `marketplaceReport`
+ * so the dashboard can show why each platform scored what it did and how to
+ * improve it. The rule-based checks are already computed during generation.
  */
 export async function patchProductMarketplace(
   productId: string,
   result: MarketplaceResult,
 ): Promise<void> {
   const complianceScores: Record<string, number> = {};
-  for (const [platformId, c] of Object.entries(result.complianceByPlatform)) {
-    complianceScores[platformId] = c.score;
+  const platforms: Record<string, { label: string; score: number; checks: ComplianceResult["checks"] }> = {};
+  for (const platform of PLATFORMS) {
+    const c = result.complianceByPlatform[platform.id];
+    if (!c) continue;
+    complianceScores[platform.id] = c.score;
+    platforms[platform.id] = { label: platform.label, score: c.score, checks: c.checks };
   }
+
+  const marketplaceReport = {
+    generatedAt: new Date().toISOString(),
+    overallScore: result.overallScore,
+    highestImpactRule: highestImpactRule(result.complianceByPlatform),
+    platforms,
+  };
 
   let existingAssets: Record<string, unknown> = {};
   try {
@@ -360,6 +405,7 @@ export async function patchProductMarketplace(
         marketplaceReady: true,
         marketplaceScore: result.overallScore,
         marketplaceScores: complianceScores,
+        marketplaceReport,
       },
     }),
   });
