@@ -200,6 +200,7 @@ export function MarketplaceReport({
   const current = report.platforms[selected] ?? platformEntries[0][1];
   const currentId = report.platforms[selected] ? selected : platformEntries[0][0];
   const downloadHref = `/api/products/${product.id}/download?type=marketplace`;
+  const zipSizeLabel = assets.marketplaceSetSizeMb ? ` (${assets.marketplaceSetSizeMb} MB)` : "";
   const affected = report.highestImpactRule
     ? Object.values(report.platforms).filter((p) =>
         p.checks.some((c) => c.id === report.highestImpactRule!.id && !c.pass),
@@ -321,9 +322,13 @@ export function MarketplaceReport({
             All {platformEntries.length} platform images + compliance report · ZIP
           </p>
         </div>
-        <Button asChild variant="outline" size="sm">
+        <Button
+          asChild
+          size="sm"
+          className="bg-gradient-to-r from-brand to-[#8b5cf6] text-white hover:opacity-90"
+        >
           <a href={downloadHref} download={`${product.shareSlug ?? product.id}-marketplace-set.zip`}>
-            <Download aria-hidden="true" /> Download ZIP
+            <Download aria-hidden="true" /> Download ZIP{zipSizeLabel}
           </a>
         </Button>
       </div>
