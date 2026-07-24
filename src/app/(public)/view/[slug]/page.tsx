@@ -134,7 +134,7 @@ export default async function PublicSharePage({
 
         {/* ── Assets Included ── */}
         <section className="border-t border-white/10 py-12">
-          <h2 className="mb-6 text-lg font-semibold">What's included</h2>
+          <h2 className="mb-6 text-lg font-semibold">What&apos;s included</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {includedAssets.map(({ icon, label }) => (
               <div
