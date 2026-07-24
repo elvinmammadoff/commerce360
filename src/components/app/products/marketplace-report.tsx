@@ -37,15 +37,31 @@ function topIssue(checks: MarketplaceCheck[]): MarketplaceCheck | null {
     .sort((a, b) => b.weight - a.weight)[0] ?? null;
 }
 
-function PlatformMark({ id }: { id: string }) {
+/** Real self-hosted logo when available (public/marketplaces/{id}.svg),
+ *  otherwise a tasteful brand-coloured mark. */
+function PlatformLogo({ id }: { id: string }) {
   const b = BRAND[id] ?? { color: "#6b7280", mark: id[0]?.toUpperCase() ?? "?" };
+  const [broken, setBroken] = React.useState(false);
+  if (broken) {
+    return (
+      <span
+        aria-hidden="true"
+        className="flex size-7 shrink-0 items-center justify-center rounded-md text-sm font-bold text-white"
+        style={{ backgroundColor: b.color }}
+      >
+        {b.mark}
+      </span>
+    );
+  }
   return (
-    <span
-      aria-hidden="true"
-      className="flex size-7 shrink-0 items-center justify-center rounded-md text-sm font-bold text-white"
-      style={{ backgroundColor: b.color }}
-    >
-      {b.mark}
+    <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-white/[0.06] p-1.5">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={`/marketplaces/${id}.svg`}
+        alt=""
+        className="size-full object-contain"
+        onError={() => setBroken(true)}
+      />
     </span>
   );
 }
@@ -54,10 +70,15 @@ function ScoreRing({ score }: { score: number }) {
   const r = readiness(score);
   const radius = 52;
   const circ = 2 * Math.PI * radius;
-  const ringColor = score >= 90 ? "#22c55e" : score >= 70 ? "#f59e0b" : "#ef4444";
   return (
     <div className="relative size-32 shrink-0">
       <svg viewBox="0 0 120 120" className="size-full -rotate-90">
+        <defs>
+          <linearGradient id="mk-ring" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#5b8cff" />
+            <stop offset="100%" stopColor="#8b5cf6" />
+          </linearGradient>
+        </defs>
         <circle cx="60" cy="60" r={radius} fill="none" strokeWidth="10" className="stroke-border" />
         <circle
           cx="60"
@@ -65,7 +86,7 @@ function ScoreRing({ score }: { score: number }) {
           r={radius}
           fill="none"
           strokeWidth="10"
-          stroke={ringColor}
+          stroke="url(#mk-ring)"
           strokeLinecap="round"
           strokeDasharray={circ}
           strokeDashoffset={circ * (1 - score / 100)}
@@ -108,7 +129,7 @@ function CheckRow({ check }: { check: MarketplaceCheck }) {
         {!check.pass && check.recommendation && (
           <p className="mt-0.5 text-xs text-muted-foreground">
             {check.recommendation}
-            <span className="ml-1 font-medium text-foreground">(potential +{check.weight} pts)</span>
+            <span className="ml-1 font-medium text-brand">(potential +{check.weight} pts)</span>
           </p>
         )}
       </div>
@@ -216,7 +237,7 @@ export function MarketplaceReport({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-sm text-foreground">{o.name}</span>
-                      <span className="shrink-0 rounded bg-amber-500/15 px-1.5 py-0.5 text-xs font-medium text-amber-500">
+                      <span className="shrink-0 rounded bg-brand/15 px-1.5 py-0.5 text-xs font-medium text-brand">
                         +{o.weight} pts
                       </span>
                     </div>
@@ -250,14 +271,17 @@ export function MarketplaceReport({
                 )}
               >
                 <div className="flex items-center gap-2">
-                  <PlatformMark id={id} />
+                  <PlatformLogo id={id} />
                   <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
                     {p.label}
                   </span>
                   <span className="font-mono text-sm font-semibold text-foreground">{p.score}</span>
                 </div>
                 <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-border">
-                  <div className={cn("h-full rounded-full", r.bar)} style={{ width: `${p.score}%` }} />
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-brand to-[#8b5cf6]"
+                    style={{ width: `${p.score}%` }}
+                  />
                 </div>
                 <p className={cn("mt-1.5 text-[11px] font-medium", r.text)}>{r.label}</p>
                 <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
@@ -272,7 +296,7 @@ export function MarketplaceReport({
       {/* Selected platform checks */}
       <div className="rounded-2xl border border-border bg-card p-5">
         <div className="mb-1 flex items-center gap-2">
-          <PlatformMark id={currentId} />
+          <PlatformLogo id={currentId} />
           <p className="text-sm font-medium text-foreground">{current.label} compatibility checks</p>
         </div>
         <div className="divide-y divide-border">
@@ -281,8 +305,7 @@ export function MarketplaceReport({
           ))}
         </div>
         <p className="mt-3 border-t border-border pt-3 text-[11px] text-muted-foreground">
-          Based on Orbittify&apos;s marketplace compatibility analysis and common
-          marketplace best practices — not official {current.label} policy.
+          Orbittify compatibility analysis — not official {current.label} policy.
         </p>
       </div>
 
