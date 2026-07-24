@@ -46,7 +46,7 @@ function PlatformLogo({ id }: { id: string }) {
     return (
       <span
         aria-hidden="true"
-        className="flex size-7 shrink-0 items-center justify-center rounded-md text-sm font-bold text-white"
+        className="flex size-9 shrink-0 items-center justify-center rounded-md text-sm font-bold text-white"
         style={{ backgroundColor: b.color }}
       >
         {b.mark}
@@ -54,7 +54,7 @@ function PlatformLogo({ id }: { id: string }) {
     );
   }
   return (
-    <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-white/[0.06] p-1.5">
+    <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-white p-1">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={`/marketplaces/${id}.svg`}
